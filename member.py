@@ -176,6 +176,7 @@ class member:
                 self.__phone        = result[8]
                 self.__phone2       = result[9]
                 self.__address      = result[10]
+                self.__photo        = result[11]
                 print("Now current member ID is {}".format(self.__mem_id))
             else:
                 print("Fetch nothing in DB")
@@ -184,8 +185,8 @@ class member:
         with sql3.connect( DB_FILE_NAME ) as conn:
             c = conn.cursor()
             c.execute( '''INSERT INTO member
-                          ( position, name, idcard, birthROC, birth, area, cell_phone, phone, phone2, address )
-                          VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )''',
+                          ( position, name, idcard, birthROC, birth, area, cell_phone, phone, phone2, address, photo )
+                          VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )''',
                           ( self.__position,
                             self.__name,
                             self.__id_card,
@@ -195,7 +196,42 @@ class member:
                             self.__cell_phone,
                             self.__phone,
                             self.__phone2,
-                            self.__address ) )
+                            self.__address,
+                            self.__photo ) )
+
+    def update_to_db( self ):
+        with sql3.connect( DB_FILE_NAME ) as conn:
+            c = conn.cursor()
+            c.execute( '''UPDATE member SET
+                      position=:position,
+                      name=:name,
+                      idcard=:idcard,
+                      birthROC=:birthROC,
+                      birth=:birth,
+                      area=:area,
+                      cell_phone=:cell_phone,
+                      phone=:phone,
+                      phone2=:phone2,
+                      address=:address,
+                      photo=:photo
+                      WHERE id =:id ''',
+                      { "position"  : self.__position,
+                        "name"      : self.__name,
+                        "idcard"    : self.__id_card,
+                        "birthROC"  : self.__birthdayROC,
+                        "birth"     : self.__birthday,
+                        "area"      : self.__area,
+                        "cell_phone": self.__cell_phone,
+                        "phone"     : self.__phone,
+                        "phone2"    : self.__phone2,
+                        "address"   : self.__address,
+                        "photo"     : self.__photo,
+                        "id"        : self.__mem_id } )
+
+    def delete_item( self, del_id ):
+        with sql3.connect( DB_FILE_NAME ) as conn:
+            c = conn.cursor()
+            c.execute( '''DELETE FROM member WHERE id = ?''', ( del_id, ) )
 
     def cnvt_excel_to_db( self ):
         """

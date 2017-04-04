@@ -71,9 +71,9 @@
        <property name="geometry">
         <rect>
          <x>450</x>
-         <y>340</y>
-         <width>176</width>
-         <height>66</height>
+         <y>365</y>
+         <width>261</width>
+         <height>41</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_3">
@@ -91,6 +91,13 @@
           </property>
          </widget>
         </item>
+        <item row="0" column="2">
+         <widget class="QPushButton" name="btn_mbr_info_delete">
+          <property name="text">
+           <string>Delete</string>
+          </property>
+         </widget>
+        </item>
        </layout>
       </widget>
       <widget class="QWidget" name="formLayoutWidget">
@@ -98,8 +105,8 @@
         <rect>
          <x>20</x>
          <y>20</y>
-         <width>381</width>
-         <height>395</height>
+         <width>398</width>
+         <height>423</height>
         </rect>
        </property>
        <layout class="QFormLayout" name="formLayout_2">
@@ -141,6 +148,16 @@
          <widget class="QLabel" name="lbl_mbr_group">
           <property name="text">
            <string>分組</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QLineEdit" name="edit_mbr_group">
+          <property name="minimumSize">
+           <size>
+            <width>250</width>
+            <height>0</height>
+           </size>
           </property>
          </widget>
         </item>
@@ -303,16 +320,6 @@
           </property>
          </widget>
         </item>
-        <item row="2" column="1">
-         <widget class="QLineEdit" name="edit_mbr_group">
-          <property name="minimumSize">
-           <size>
-            <width>250</width>
-            <height>0</height>
-           </size>
-          </property>
-         </widget>
-        </item>
         <item row="12" column="0">
          <widget class="QLabel" name="lbl_mbr_photo_path">
           <property name="text">
@@ -321,21 +328,28 @@
          </widget>
         </item>
         <item row="12" column="1">
-         <widget class="QLineEdit" name="edit_mbr_photo_path">
-          <property name="minimumSize">
-           <size>
-            <width>250</width>
-            <height>0</height>
-           </size>
-          </property>
-         </widget>
+         <layout class="QGridLayout" name="gridLayout">
+          <item row="0" column="0">
+           <widget class="QLineEdit" name="edit_mbr_photo_path">
+            <property name="minimumSize">
+             <size>
+              <width>250</width>
+              <height>0</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QPushButton" name="btn_mbr_info_img_file_diag">
+            <property name="text">
+             <string>選擇</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </item>
        </layout>
       </widget>
-      <zorder>lbl_mbr_photo</zorder>
-      <zorder>gridLayoutWidget_2</zorder>
-      <zorder>formLayoutWidget</zorder>
-      <zorder>btn_mbr_info_update</zorder>
      </widget>
     </widget>
     <widget class="QWidget" name="TabMemberTable">
