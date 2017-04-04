@@ -25,6 +25,7 @@ class member:
         self.__address      = meminfo.get( 'address', ''                )       # String
         self.__phone        = meminfo.get( 'phone', ''                  )       # String
         self.__phone2       = meminfo.get( 'phone2', ''                 )       # String
+        self.__photo        = meminfo.get( 'photo', ''                  )       # String
 
         '''
         Create database if not exist
@@ -75,6 +76,10 @@ class member:
     def phone2(self):
         return self.__phone2
 
+    @property
+    def photo(self):
+        return self.__photo
+
     @name.setter
     def name(self, name):
         self.__name = name
@@ -119,6 +124,13 @@ class member:
     def phone2(self, phone2):
         self.__phone2 = phone2
 
+    @photo.setter
+    def photo(self, photo):
+        self.__photo = photo
+
+    '''
+    Member functions
+    '''
     def xstr( self, s ):
         if s is None:
             return ''
@@ -138,7 +150,8 @@ class member:
                         cell_phone  TEXT,
                         phone       TEXT,
                         phone2      TEXT,
-                        address     TEXT
+                        address     TEXT,
+                        photo       TEXT
                         )''' )
 
     def drop_tbl( self ):
@@ -163,6 +176,7 @@ class member:
                 self.__phone        = result[8]
                 self.__phone2       = result[9]
                 self.__address      = result[10]
+                print("Now current member ID is {}".format(self.__mem_id))
             else:
                 print("Fetch nothing in DB")
 
