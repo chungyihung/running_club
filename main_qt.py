@@ -15,13 +15,13 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
         self.setupUi( self )
         self.curr_mbr = mbr.member()
 
-        self.gui_qpixmap = QtGui.QPixmap( "Resource/none_photo.jpg" )
+        self.gui_qpixmap = QtGui.QPixmap( mbr.DEFAULT_PHOTO )
         self.gui_mbr_info_update_photo()
 
         ''' ---------------------------------------------
         Additional widgets attributes
         ----------------------------------------------'''
-        self.edit_mbr_birth_ROC.setValidator( QtGui.QIntValidator(0,1000, self) )
+        self.edit_mbr_birth_ROC.setValidator( QtGui.QIntValidator( 0, 1000, self ) )
 
         ''' ---------------------------------------------
         Connect each widget to its method
@@ -50,31 +50,48 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
             print("[Exception]: {}".format( err ))
 
     def gui_fill_line_edit_with_curr_mbr( self ):
-        self.edit_mbr_address.setText(      "{}".format( self.curr_mbr.address )    )
-        self.edit_mbr_area.setText(         "{}".format( self.curr_mbr.area )       )
-        self.edit_mbr_birth_ROC.setText(    "{}".format( self.curr_mbr.birthdayROC ))
-        self.edit_mbr_birthday.setText(     "{}".format( self.curr_mbr.birthday )   )
-        self.edit_mbr_cellphone.setText(    "{}".format( self.curr_mbr.cell_phone ) )
-        self.edit_mbr_idcard.setText(       "{}".format( self.curr_mbr.id_card )    )
-        self.edit_mbr_name.setText(         "{}".format( self.curr_mbr.name )       )
-        self.edit_mbr_phone1.setText(       "{}".format( self.curr_mbr.phone )      )
-        self.edit_mbr_phone2.setText(       "{}".format( self.curr_mbr.phone2 )     )
-        self.edit_mbr_position.setText(     "{}".format( self.curr_mbr.position )   )
-        self.edit_mbr_photo_path.setText(   "{}".format( self.curr_mbr.photo )      )
+        self.edit_mbr_address.setText(      "{}".format( self.curr_mbr.address )            )
+        self.edit_mbr_area.setText(         "{}".format( self.curr_mbr.area )               )
+        self.edit_mbr_birth_ROC.setText(    "{}".format( self.curr_mbr.birthday_Y )         )
+        self.edit_mbr_birthday.setText(     "{}.{}.{}".format( self.curr_mbr.birthday_Y,
+                                                               self.curr_mbr.birthday_M,
+                                                               self.curr_mbr.birthday_D )   )
+        self.edit_mbr_cellphone.setText(    "{}".format( self.curr_mbr.cell_phone )         )
+        self.edit_mbr_idcard.setText(       "{}".format( self.curr_mbr.id_card )            )
+        self.edit_mbr_name.setText(         "{}".format( self.curr_mbr.name )               )
+        self.edit_mbr_phone1.setText(       "{}".format( self.curr_mbr.phone )              )
+        self.edit_mbr_phone2.setText(       "{}".format( self.curr_mbr.phone2 )             )
+        self.edit_mbr_position.setText(     "{}".format( self.curr_mbr.position )           )
+        self.edit_mbr_photo_path.setText(   "{}".format( self.curr_mbr.photo )              )
 
     def gui_fill_curr_mbr_with_line_edit( self ):
-        self.curr_mbr.mem_id        = int( self.edit_mbr_id.text()          )
-        self.curr_mbr.position      = str( self.edit_mbr_position.text()    )
-        self.curr_mbr.name          = str( self.edit_mbr_name.text()        )
-        self.curr_mbr.id_card       = str( self.edit_mbr_idcard.text()      )
-        self.curr_mbr.birthdayROC   = int( self.edit_mbr_birth_ROC.text()   )
-        self.curr_mbr.birthday      = str( self.edit_mbr_birthday.text()    )
-        self.curr_mbr.area          = str( self.edit_mbr_area.text()        )
-        self.curr_mbr.cell_phone    = str( self.edit_mbr_cellphone.text()   )
-        self.curr_mbr.phone         = str( self.edit_mbr_phone1.text()      )
-        self.curr_mbr.phone2        = str( self.edit_mbr_phone2.text()      )
-        self.curr_mbr.address       = str( self.edit_mbr_address.text()     )
-        self.curr_mbr.photo         = str( self.edit_mbr_photo_path.text()  )
+        ret = False
+        birth_list = self.curr_mbr.birthday_str_to_list( self.edit_mbr_birthday.text() )
+
+        if birth_list == None:
+            print( "Birth List value is Empty")
+        elif len( birth_list ) != 3:
+            print( "Len of Birth List is not eqult to 3 ({})".format( len( birth_list ) ) )
+        else:
+            try:
+                self.curr_mbr.mem_id    = int( self.edit_mbr_id.text()      )
+            except ValueError as err:
+                print( "[Exception]: {}".format( err ) )
+
+            self.curr_mbr.position      = str( self.edit_mbr_position.text()    )
+            self.curr_mbr.name          = str( self.edit_mbr_name.text()        )
+            self.curr_mbr.id_card       = str( self.edit_mbr_idcard.text()      )
+            self.curr_mbr.birthday_Y    = int( birth_list[0]                    )
+            self.curr_mbr.birthday_M    = int( birth_list[1]                    )
+            self.curr_mbr.birthday_D    = int( birth_list[2]                    )
+            self.curr_mbr.area          = str( self.edit_mbr_area.text()        )
+            self.curr_mbr.cell_phone    = str( self.edit_mbr_cellphone.text()   )
+            self.curr_mbr.phone         = str( self.edit_mbr_phone1.text()      )
+            self.curr_mbr.phone2        = str( self.edit_mbr_phone2.text()      )
+            self.curr_mbr.address       = str( self.edit_mbr_address.text()     )
+            self.curr_mbr.photo         = str( self.edit_mbr_photo_path.text()  )
+
+        return True
 
     def gui_mbr_info_update_photo( self ):
         impath = self.curr_mbr.photo
@@ -82,8 +99,8 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
         self.gui_qpixmap = QtGui.QPixmap( impath )
 
         if self.gui_qpixmap.isNull():
-            self.gui_qpixmap = QtGui.QPixmap( "Resource/none_photo.jpg" )
-            print( "Path is invalid" )
+            self.gui_qpixmap = QtGui.QPixmap( mbr.DEFAULT_PHOTO )
+            print( "Photo Path is invalid, showing with default photo" )
 
         lblsize = self.lbl_mbr_photo.size()
         self.lbl_mbr_photo.setPixmap( self.gui_qpixmap.scaled( lblsize, QtCore.Qt.KeepAspectRatio ) )
@@ -95,12 +112,12 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
             self.edit_mbr_photo_path.setText( os.path.relpath( fname[0] ) )
 
     def gui_save_curr_mbr_to_db( self ):
-        self.gui_fill_curr_mbr_with_line_edit()
-        self.curr_mbr.save_to_db()
+        if True == self.gui_fill_curr_mbr_with_line_edit():
+            self.curr_mbr.save_to_db()
 
     def gui_update_curr_mbr_to_db( self ):
-        self.gui_fill_curr_mbr_with_line_edit()
-        self.curr_mbr.update_to_db()
+        if True == self.gui_fill_curr_mbr_with_line_edit():
+            self.curr_mbr.update_to_db()
 
     def gui_delete_curr_mbr( self ):
         self.curr_mbr.delete_item( int( self.edit_mbr_id.text() ) )

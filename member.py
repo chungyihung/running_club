@@ -2,30 +2,58 @@
 
 import sqlite3 as sql3
 import openpyxl as pyxl
+import enum as enm
 
 INVALID_ID = 65535
 INVALID_CARD_ID = '##########'
 INVALID_PHONE = '09__-______'
 
+DEFAULT_PHOTO = "Resource/none_photo.jpg"
+
+''' ---------------------------------------------
+Excel file related
+----------------------------------------------'''
 DB_FILE_NAME            = "running_club_member.db"
 EXCEL_FILE_NAME         = "running_table.xlsx"
 EXCEL_FILE_TS_NAME      = "running_table_test.xlsx"
 EXCEL_SHEET_ALL_NAME    = "新會員(全)"
 
+''' ---------------------------------------------
+Excel items sequence
+----------------------------------------------'''
+class ExcelItem( enm.IntEnum ):
+    EXSL_POSITION           = 1
+    EXSL_NAME               = 2
+    EXSL_IDCARD             = 3
+    EXSL_BIRTHDAY_Y_STR     = 4
+    EXSL_BIRTHDAY_STR       = 5
+    EXSL_AREA               = 6
+    EXSL_CELLPHONE          = 7
+    EXSL_PHONE              = 8
+    EXSL_PHONE2             = 9
+    EXSL_ADDRESS            = 10
+    EXSL_CNT                = enm.auto()
+
+EXSL_BIRTH_DELIM        = '.'
+
+''' ---------------------------------------------
+Main member class
+----------------------------------------------'''
 class member:
     def __init__(self, **meminfo):
         self.__name         = meminfo.get( 'name', 'Unknown'            )       # String
         self.__mem_id       = meminfo.get( 'id', INVALID_ID             )       # Unsigned Int
         self.__cell_phone   = meminfo.get( 'cell_phone', INVALID_PHONE  )       # String
-        self.__position     = meminfo.get( 'position', 'Unknown'        )       # String
+        self.__position     = meminfo.get( 'position', 'Unknown'        )       # String. Job position
         self.__id_card      = meminfo.get( 'idcard', INVALID_CARD_ID    )       # String
-        self.__birthday     = meminfo.get( 'birthday', ''               )       # String, will revise as list later
-        self.__birthdayROC  = meminfo.get( 'birthdayROC', ''            )       # Unsigned Int
-        self.__area         = meminfo.get( 'area', ''                   )       # String
+        self.__birthday_Y   = meminfo.get( 'birthday_Y', ''             )       # Unsigned Int in Republic Era.
+        self.__birthday_M   = meminfo.get( 'birthday_M', ''             )       # Unsigned Int
+        self.__birthday_D   = meminfo.get( 'birthday_D', ''             )       # Unsigned Int
+        self.__area         = meminfo.get( 'area', ''                   )       # String. (Using enum to represent)
         self.__address      = meminfo.get( 'address', ''                )       # String
         self.__phone        = meminfo.get( 'phone', ''                  )       # String
         self.__phone2       = meminfo.get( 'phone2', ''                 )       # String
-        self.__photo        = meminfo.get( 'photo', ''                  )       # String
+        self.__photo        = meminfo.get( 'photo', ''                  )       # String. Recording relative file path
 
         '''
         Create database if not exist
@@ -53,12 +81,16 @@ class member:
         return self.__id_card
 
     @property
-    def birthday(self):
-        return self.__birthday
+    def birthday_Y(self):
+        return self.__birthday_Y
 
     @property
-    def birthdayROC(self):
-        return self.__birthdayROC
+    def birthday_M(self):
+        return self.__birthday_M
+
+    @property
+    def birthday_D(self):
+        return self.__birthday_D
 
     @property
     def area(self):
@@ -100,13 +132,17 @@ class member:
     def id_card(self, id_card):
         self.__id_card = id_card
 
-    @birthday.setter
-    def birthday(self, birthday):
-        self.__birthday = birthday
+    @birthday_Y.setter
+    def birthday_Y(self, birthday_Y):
+        self.__birthday_Y = birthday_Y
 
-    @birthdayROC.setter
-    def birthdayROC(self, birthdayROC):
-        self.__birthdayROC = birthdayROC
+    @birthday_M.setter
+    def birthday_M(self, birthday_M):
+        self.__birthday_M = birthday_M
+
+    @birthday_D.setter
+    def birthday_D(self, birthday_D):
+        self.__birthday_D = birthday_D
 
     @area.setter
     def area(self, area):
@@ -144,8 +180,9 @@ class member:
                         position    TEXT NOT NULL,
                         name        TEXT NOT NULL,
                         idcard      TEXT,
-                        birthROC    INTEGER,
-                        birth       TEXT,
+                        birthday_Y  INTEGER,
+                        birthday_M  INTEGER,
+                        birthday_D  INTEGER,
                         area        TEXT,
                         cell_phone  TEXT,
                         phone       TEXT,
@@ -169,29 +206,43 @@ class member:
                 self.__position     = result[1]
                 self.__name         = result[2]
                 self.__id_card      = result[3]
-                self.__birthdayROC  = result[4]
-                self.__birthday     = result[5]
-                self.__area         = result[6]
-                self.__cell_phone   = result[7]
-                self.__phone        = result[8]
-                self.__phone2       = result[9]
-                self.__address      = result[10]
-                self.__photo        = result[11]
+                self.__birthday_Y   = result[4]
+                self.__birthday_M   = result[5]
+                self.__birthday_D   = result[6]
+                self.__area         = result[7]
+                self.__cell_phone   = result[8]
+                self.__phone        = result[9]
+                self.__phone2       = result[10]
+                self.__address      = result[11]
+                self.__photo        = result[12]
                 print("Now current member ID is {}".format(self.__mem_id))
             else:
                 print("Fetch nothing in DB")
 
     def save_to_db( self ):
+
         with sql3.connect( DB_FILE_NAME ) as conn:
             c = conn.cursor()
+            c.execute( '''SELECT MAX(id) FROM member''' )
+
+            max_id = c.fetchone()[0]
+            if max_id == None:
+                max_id = 0
+            else:
+                max_id += 1
+                if max_id % 10 == 4:
+                    max_id += 1
+
             c.execute( '''INSERT INTO member
-                          ( position, name, idcard, birthROC, birth, area, cell_phone, phone, phone2, address, photo )
-                          VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )''',
-                          ( self.__position,
+                          ( id, position, name, idcard, birthday_Y, birthday_M, birthday_D, area, cell_phone, phone, phone2, address, photo )
+                          VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )''',
+                          ( max_id,
+                            self.__position,
                             self.__name,
                             self.__id_card,
-                            self.__birthdayROC,
-                            self.__birthday,
+                            self.__birthday_Y,
+                            self.__birthday_M,
+                            self.__birthday_D,
                             self.__area,
                             self.__cell_phone,
                             self.__phone,
@@ -206,8 +257,9 @@ class member:
                       position=:position,
                       name=:name,
                       idcard=:idcard,
-                      birthROC=:birthROC,
-                      birth=:birth,
+                      birthday_Y=:birthday_Y,
+                      birthday_M=:birthday_M,
+                      birthday_D=:birthday_D,
                       area=:area,
                       cell_phone=:cell_phone,
                       phone=:phone,
@@ -215,18 +267,19 @@ class member:
                       address=:address,
                       photo=:photo
                       WHERE id =:id ''',
-                      { "position"  : self.__position,
-                        "name"      : self.__name,
-                        "idcard"    : self.__id_card,
-                        "birthROC"  : self.__birthdayROC,
-                        "birth"     : self.__birthday,
-                        "area"      : self.__area,
-                        "cell_phone": self.__cell_phone,
-                        "phone"     : self.__phone,
-                        "phone2"    : self.__phone2,
-                        "address"   : self.__address,
-                        "photo"     : self.__photo,
-                        "id"        : self.__mem_id } )
+                      { "position"      : self.__position,
+                        "name"          : self.__name,
+                        "idcard"        : self.__id_card,
+                        "birthday_Y"    : self.__birthday_Y,
+                        "birthday_M"    : self.__birthday_M,
+                        "birthday_D"    : self.__birthday_D,
+                        "area"          : self.__area,
+                        "cell_phone"    : self.__cell_phone,
+                        "phone"         : self.__phone,
+                        "phone2"        : self.__phone2,
+                        "address"       : self.__address,
+                        "photo"         : self.__photo,
+                        "id"            : self.__mem_id } )
 
     def delete_item( self, del_id ):
         with sql3.connect( DB_FILE_NAME ) as conn:
@@ -251,19 +304,22 @@ class member:
             for item in sheet_all.iter_rows( row_offset = 1 ):
                 if item[0].value != None:
                     print(int(item[0].value))
+                    mbr_birthday_lst = self.birthday_str_to_list( item[ExcelItem.EXSL_BIRTHDAY_STR].value )
                     c.execute( '''INSERT INTO member
-                                  ( position, name, idcard, birthROC, birth, area, cell_phone, phone, phone2, address )
-                                  VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )''',
-                                  ( self.xstr( item[1].value ),
-                                    self.xstr( item[2].value ),
-                                    self.xstr( item[3].value ),
-                                    self.xstr( item[4].value ),
-                                    self.xstr( item[5].value ),
-                                    self.xstr( item[6].value ),
-                                    self.xstr( item[7].value ),
-                                    self.xstr( item[8].value ),
-                                    self.xstr( item[9].value ),
-                                    self.xstr( item[10].value ) ) )
+                                  ( position, name, idcard, birthday_Y, birthday_M, birthday_D, area, cell_phone, phone, phone2, address, photo )
+                                  VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )''',
+                                  ( self.xstr( item[ExcelItem.EXSL_POSITION].value ),
+                                    self.xstr( item[ExcelItem.EXSL_NAME].value ),
+                                    self.xstr( item[ExcelItem.EXSL_IDCARD].value ),
+                                    mbr_birthday_lst[0],
+                                    mbr_birthday_lst[1],
+                                    mbr_birthday_lst[2],
+                                    self.xstr( item[ExcelItem.EXSL_AREA].value ),
+                                    self.xstr( item[ExcelItem.EXSL_CELLPHONE].value ),
+                                    self.xstr( item[ExcelItem.EXSL_PHONE].value ),
+                                    self.xstr( item[ExcelItem.EXSL_PHONE2].value ),
+                                    self.xstr( item[ExcelItem.EXSL_ADDRESS].value ),
+                                    DEFAULT_PHOTO) )
 
     def cnvt_db_to_excel( self ):
         wb = pyxl.Workbook()
@@ -276,6 +332,20 @@ class member:
             c = conn.cursor()
             c.execute( "SELECT * FROM member" )
             for row in c:
-                ws.append( [ x for x in row ] )
+                append_list = [ row[0], row[1],row[2],row[3],row[4],
+                               "{}{}{}{}{}".format( row[4], EXSL_BIRTH_DELIM, row[5], EXSL_BIRTH_DELIM, row[6] ),
+                                row[7], row[8], row[9], row[10], row[11]]
+                #print( append_list )
+                ws.append( append_list )
 
         wb.save( filename = EXCEL_FILE_TS_NAME )
+
+    def birthday_str_to_list( self, birth_str ):
+        birth_list = [ 0, 1, 1 ]
+        try:
+            birth_list = birth_str.split( EXSL_BIRTH_DELIM )
+        except:
+            print( "Convert birthday string to list failed, using default value" )
+            birth_list = [ 0, 1, 1 ]
+
+        return birth_list
