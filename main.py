@@ -1,213 +1,205 @@
 #!/usr/local/bin/python3
 import member as mbr
-import tkinter as tk
+from PyQt5 import QtCore, QtGui, QtWidgets, uic
 
-"""
-Main window settings
-"""
-MainWindow_W = 720
-MainWindow_H = 480
+'''-----------------------------------------------------------
+Setting main window layout and class
+-----------------------------------------------------------'''
+qtCreatorFile = "mainwindow.ui"
+UI_MainWindow, QtBaseClass = uic.loadUiType( qtCreatorFile )
 
-MenuFrame_W = MainWindow_H
-MenuFrame_H = 100
+'''-----------------------------------------------------------
+Tab menu enum
+-----------------------------------------------------------'''
+TAB_MEMBER_INFO         = 0
+TAB_MEMBER_TABLE        = 1
+TAB_MEMBER_STATISTIC    = 2
+TAB_MEMBER_GROUP        = 3
+TAB_MEMBER_VOLUNTEER    = 4
 
-MainFrame_W = MainWindow_H
-MainFrame_H = MainWindow_H - MenuFrame_H
-
-"""
-Main window class
-"""
-class Application:
-
-    def __init__(self, master):
-
+class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
+    def __init__( self ):
+        QtWidgets.QMainWindow.__init__( self )
+        UI_MainWindow.__init__( self )
+        self.setupUi( self )
         self.curr_mbr = mbr.member()
 
-        self.master = master
-        self.menuFrame = tk.Frame( self.master, width = MenuFrame_W, height = MenuFrame_H )
-        self.menuFrame.grid( row = 0, column = 0 )
-        self.MenuHandler( self.menuFrame )
+        self.gui_qpixmap = QtGui.QPixmap( mbr.DEFAULT_PHOTO )
+        self.gui_mbr_info_update_photo()
 
-        self.mainFrame = tk.Frame( self.master, width = MainFrame_W, height = MainFrame_H )
-        self.mainFrame.grid( row = 1, column = 0 )
+        ''' ---------------------------------------------
+        Additional widgets attributes
+        ----------------------------------------------'''
+        self.edit_mbr_birth_ROC.setValidator( QtGui.QIntValidator( 0, 1000, self ) )
 
-        self.gui_pg_insert_member( self.mainFrame )
+        ''' ---------------------------------------------
+        Connect each widget to its method
+        ----------------------------------------------'''
+        # Line Edit Widget
+        self.edit_mbr_id.editingFinished.connect( self.gui_mbr_read_from_db )   # Or use returnPressed signal
 
-    def MenuHandler( self, frame ):
-        """         Constant        """
-        BTN_MBR_INFO_PG_STR     = "會員資料"
-        BTN_STATISTIC_PG_STR    = "統計資料"
-        BTN_GROUP_PG_STR        = "分組名單"
-        BTN_VOLUNTEER_PG_STR    = "馬拉松志工調度"
 
-        """         Menu Setting    """
-        self.btn_mbr_info_pg    = tk.Button( frame, text = BTN_MBR_INFO_PG_STR  )
-        self.btn_statistic_pg   = tk.Button( frame, text = BTN_STATISTIC_PG_STR )
-        self.btn_group_pg       = tk.Button( frame, text = BTN_GROUP_PG_STR     )
-        self.btn_volunteer_pg   = tk.Button( frame, text = BTN_VOLUNTEER_PG_STR )
+        # Menubar action
+        self.actionExport_to_excel.triggered.connect( self.curr_mbr.cnvt_db_to_excel )
+        self.actionImport_from_excel.triggered.connect( self.curr_mbr.cnvt_excel_to_db )
 
-        self.btn_mbr_info_pg.grid(  row = 0, column = 0)
-        self.btn_statistic_pg.grid( row = 0, column = 1)
-        self.btn_group_pg.grid(     row = 0, column = 2)
-        self.btn_volunteer_pg.grid( row = 0, column = 3)
+        # Button widget action
+        self.btn_mbr_info_img_file_diag.clicked.connect( self.gui_get_mbr_file_path )
+        self.btn_mbr_info_create.clicked.connect( self.gui_save_curr_mbr_to_db )
+        self.btn_mbr_info_update.clicked.connect( self.gui_update_curr_mbr_to_db )
+        self.btn_mbr_info_delete.clicked.connect( self.gui_delete_curr_mbr )
 
-    def gui_pg_member_table( self, frame ):
-        print( "Currently not supported..." )
+        ''' ---------------------------------------------
+        Tab attributes
+        ----------------------------------------------'''
+        self.tabMenu.currentChanged.connect( self.gui_tab_change_hndl )
 
-    def gui_pg_insert_member(self, frame ):
-        """
-        TODO: Use an general array and dict to organize widgets and their attributes
-              and create them in an iteration manner.
-        """
-        self.PositionEntry_Var      = tk.StringVar()
-        self.NameEntry_Var          = tk.StringVar()
-        self.IDCardEntry_Var        = tk.StringVar()
-        self.BorthYearROCEntry_Var  = tk.StringVar()
-        self.BorthYMDEntry_Var      = tk.StringVar()
-        self.AreaEntry_Var          = tk.StringVar()
-        self.CellPhoneEntry_Var     = tk.StringVar()
-        self.PhonePrimaryEntry_Var  = tk.StringVar()
-        self.PhoneSecondEntry_Var   = tk.StringVar()
-        self.AddressEntry_Var       = tk.StringVar()
+    def gui_tab_change_hndl( self, curr_idx ):
+        if( TAB_MEMBER_TABLE == curr_idx ):
+            ''' ---------------------------------------------
+            Table is filled only when TAB_MEMBER_TABLE is selected
+            ----------------------------------------------'''
+            self.gui_fill_data_table()
 
-        self.QueryID_Var            = tk.IntVar()
+    def gui_fill_data_table( self ):
+        self.gui_remove_data_table()
+        self.gui_update_data_table()
 
-        self.PositionLabel      = tk.Label( frame, text = "Position: " )
-        self.NameLabel          = tk.Label( frame, text = "Name: " )
-        self.IDCardLabel        = tk.Label( frame, text = "ID Card: " )
-        self.BorthYearROCLabel  = tk.Label( frame, text = "Birth( Republic Era): " )
-        self.BorthYMDLabel      = tk.Label( frame, text = "Birth: " )
-        self.AreaLabel          = tk.Label( frame, text = "Area: " )
-        self.CellPhoneLabel     = tk.Label( frame, text = "Cell Phone: " )
-        self.PhonePrimaryLabel  = tk.Label( frame, text = "Primary Phone: " )
-        self.PhoneSecondLabel   = tk.Label( frame, text = "Secondary Phone: " )
-        self.AddressLabel       = tk.Label( frame, text = "Address: " )
+    def gui_update_data_table( self ):
+        mbrdata = self.curr_mbr.retrieve_all_data()
 
-        self.queryidLabel       = tk.Label( frame, text = "Search ID: " )
+        HeaderLabel = [
+            "編號", "職稱", "姓名", "身分證",  "出生年月日", "地區",
+            "手機", "電話1", "電話2", "地址" ]
+        self.mbrTable.setColumnCount( len( HeaderLabel ) )
+        self.mbrTable.setHorizontalHeaderLabels(HeaderLabel)
+        self.mbrTable.verticalHeader().setVisible(False)
 
-        self.PositionEntry      = tk.Entry( frame, textvariable = self.PositionEntry_Var        )
-        self.NameEntry          = tk.Entry( frame, textvariable = self.NameEntry_Var            )
-        self.IDCardEntry        = tk.Entry( frame, textvariable = self.IDCardEntry_Var          )
-        self.BorthYearROCEntry  = tk.Entry( frame, textvariable = self.BorthYearROCEntry_Var    )
-        self.BorthYMDEntry      = tk.Entry( frame, textvariable = self.BorthYMDEntry_Var        )
-        self.AreaEntry          = tk.Entry( frame, textvariable = self.AreaEntry_Var            )
-        self.CellPhoneEntry     = tk.Entry( frame, textvariable = self.CellPhoneEntry_Var       )
-        self.PhonePrimaryEntry  = tk.Entry( frame, textvariable = self.PhonePrimaryEntry_Var    )
-        self.PhoneSecondEntry   = tk.Entry( frame, textvariable = self.PhoneSecondEntry_Var     )
-        self.AddressEntry       = tk.Entry( frame, textvariable = self.AddressEntry_Var         )
+        for row in mbrdata:
+            indx = mbrdata.index( row )
+            birthstr = "{}.{}.{}".format( row[mbr.DBItem.DB_birthday_Y.value],
+                                          row[mbr.DBItem.DB_birthday_M.value],
+                                          row[mbr.DBItem.DB_birthday_D.value] )
+            self.mbrTable.insertRow( indx )
+            self.mbrTable.setItem( indx, 0, QtWidgets.QTableWidgetItem( str( row[mbr.DBItem.DB_id.value] ) ) )  # index
+            self.mbrTable.setItem( indx, 1, QtWidgets.QTableWidgetItem( row[mbr.DBItem.DB_position.value] ) )   # position
+            self.mbrTable.setItem( indx, 2, QtWidgets.QTableWidgetItem( row[mbr.DBItem.DB_name.value] ) )       # name
+            self.mbrTable.setItem( indx, 3, QtWidgets.QTableWidgetItem( row[mbr.DBItem.DB_idcard.value] ) )     # idcard number
+            self.mbrTable.setItem( indx, 4, QtWidgets.QTableWidgetItem( str( birthstr ) ) )                     # Birthday
+            self.mbrTable.setItem( indx, 5, QtWidgets.QTableWidgetItem( row[mbr.DBItem.DB_area.value] ) )       # area
+            self.mbrTable.setItem( indx, 6, QtWidgets.QTableWidgetItem( row[mbr.DBItem.DB_cell_phone.value] ) ) # cell phone
+            self.mbrTable.setItem( indx, 7, QtWidgets.QTableWidgetItem( row[mbr.DBItem.DB_phone.value] ) )      # phone
+            self.mbrTable.setItem( indx, 8, QtWidgets.QTableWidgetItem( row[mbr.DBItem.DB_phone2.value] ) )     # phone2
+            self.mbrTable.setItem( indx, 9, QtWidgets.QTableWidgetItem( row[mbr.DBItem.DB_address.value] ) )    # Address
 
-        self.queryidEntry       = tk.Entry( frame, textvariable = self.QueryID_Var )
-        self.queryidEntry.bind('<Return>', ( lambda event: self.queryMember() ) )
+        for col in range( 0, len( HeaderLabel ) ):
+            self.mbrTable.horizontalHeader().setSectionResizeMode( col, QtWidgets.QHeaderView.ResizeToContents )
 
-        self.queryidBtn         = tk.Button( frame, text = "Search", command = self.queryMember )
-        self.saveCurrentBtn     = tk.Button( frame, text = "Save", command = self.SaveMemberInDB )
+    def gui_remove_data_table( self ):
+        rows = self.mbrTable.rowCount()
+        for row in range( 0, rows ):
+            self.mbrTable.removeRow( 0 )
 
-        """ Test function button """
-        self.cnvt_excel_to_db = tk.Button( frame, text = "Excel to DB", command = self.curr_mbr.cnvt_excel_to_db )
-        self.cnvt_db_to_excel = tk.Button( frame, text = "DB to Excel", command = self.curr_mbr.cnvt_db_to_excel )
+    def gui_mbr_read_from_db( self ):
+        try:
+            query_id = int(self.edit_mbr_id.text())
+            self.curr_mbr.load_from_db( query_id )
+            self.gui_fill_line_edit_with_curr_mbr()
+            self.gui_mbr_info_update_photo()
+        except ValueError as err:
+            print("[Exception]: {}".format( err ))
 
-        """ Organize the widgets """
-        self.queryidLabel.grid(     row = 0, column = 0 )
-        self.queryidEntry.grid(     row = 0, column = 1 )
+    def gui_fill_line_edit_with_curr_mbr( self ):
+        self.edit_mbr_address.setText(      "{}".format( self.curr_mbr.address )            )
+        self.edit_mbr_area.setText(         "{}".format( self.curr_mbr.area )               )
+        self.edit_mbr_birth_ROC.setText(    "{}".format( self.curr_mbr.birthday_Y )         )
+        self.edit_mbr_birthday.setText(     "{}.{}.{}".format( self.curr_mbr.birthday_Y,
+                                                               self.curr_mbr.birthday_M,
+                                                               self.curr_mbr.birthday_D )   )
+        self.edit_mbr_cellphone.setText(    "{}".format( self.curr_mbr.cell_phone )         )
+        self.edit_mbr_idcard.setText(       "{}".format( self.curr_mbr.id_card )            )
+        self.edit_mbr_name.setText(         "{}".format( self.curr_mbr.name )               )
+        self.edit_mbr_phone1.setText(       "{}".format( self.curr_mbr.phone )              )
+        self.edit_mbr_phone2.setText(       "{}".format( self.curr_mbr.phone2 )             )
+        self.edit_mbr_position.setText(     "{}".format( self.curr_mbr.position )           )
+        self.edit_mbr_photo_path.setText(   "{}".format( self.curr_mbr.photo )              )
 
-        self.PositionLabel.grid(        row = 1,  column = 0 )
-        self.NameLabel.grid(            row = 2,  column = 0 )
-        self.IDCardLabel.grid(          row = 3,  column = 0 )
-        self.BorthYearROCLabel.grid(    row = 4,  column = 0 )
-        self.BorthYMDLabel.grid(        row = 5,  column = 0 )
-        self.AreaLabel.grid(            row = 6,  column = 0 )
-        self.CellPhoneLabel.grid(       row = 7,  column = 0 )
-        self.PhonePrimaryLabel.grid(    row = 8,  column = 0 )
-        self.PhoneSecondLabel.grid(     row = 9,  column = 0 )
-        self.AddressLabel.grid(         row = 10, column = 0 )
+    def gui_fill_curr_mbr_with_line_edit( self ):
+        ret = False
+        birth_list = self.curr_mbr.birthday_str_to_list( self.edit_mbr_birthday.text() )
 
-        self.PositionEntry.grid(        row = 1,  column = 1 )
-        self.NameEntry.grid(            row = 2,  column = 1 )
-        self.IDCardEntry.grid(          row = 3,  column = 1 )
-        self.BorthYearROCEntry.grid(    row = 4,  column = 1 )
-        self.BorthYMDEntry.grid(        row = 5,  column = 1 )
-        self.AreaEntry.grid(            row = 6,  column = 1 )
-        self.CellPhoneEntry.grid(       row = 7,  column = 1 )
-        self.PhonePrimaryEntry.grid(    row = 8,  column = 1 )
-        self.PhoneSecondEntry.grid(     row = 9,  column = 1 )
-        self.AddressEntry.grid(         row = 10, column = 1 )
+        if birth_list == None:
+            print( "Birth List value is Empty")
+        elif len( birth_list ) != 3:
+            print( "Len of Birth List is not eqult to 3 ({})".format( len( birth_list ) ) )
+        else:
+            try:
+                self.curr_mbr.mem_id    = int( self.edit_mbr_id.text()      )
+            except ValueError as err:
+                print( "[Exception]: {}".format( err ) )
 
-        self.queryidBtn.grid(       row = 0, column = 2 )
-        self.saveCurrentBtn.grid(   row = 0, column = 3 )
-        self.cnvt_excel_to_db.grid( row = 0, column = 4 )
-        self.cnvt_db_to_excel.grid( row = 0, column = 5 )
+            self.curr_mbr.position      = str( self.edit_mbr_position.text()    )
+            self.curr_mbr.name          = str( self.edit_mbr_name.text()        )
+            self.curr_mbr.id_card       = str( self.edit_mbr_idcard.text()      )
+            self.curr_mbr.birthday_Y    = int( birth_list[0]                    )
+            self.curr_mbr.birthday_M    = int( birth_list[1]                    )
+            self.curr_mbr.birthday_D    = int( birth_list[2]                    )
+            self.curr_mbr.area          = str( self.edit_mbr_area.text()        )
+            self.curr_mbr.cell_phone    = str( self.edit_mbr_cellphone.text()   )
+            self.curr_mbr.phone         = str( self.edit_mbr_phone1.text()      )
+            self.curr_mbr.phone2        = str( self.edit_mbr_phone2.text()      )
+            self.curr_mbr.address       = str( self.edit_mbr_address.text()     )
+            self.curr_mbr.photo         = str( self.edit_mbr_photo_path.text()  )
+            ret = True
 
-        self.GUI_blank_entry()
+        return ret
 
-    """
-    Need to wrap sqlite to fill up the data item
-    """
-    def GUI_fill_entry(self):
-        self.NameEntry_Var.set( self.curr_mbr.name )
-        self.CellPhoneEntry_Var.set( self.curr_mbr.cell_phone )
+    def gui_mbr_info_update_photo( self ):
+        impath = self.curr_mbr.photo
 
-        self.PositionEntry_Var.set(     self.curr_mbr.cell_phone    )
-        self.NameEntry_Var.set(         self.curr_mbr.name          )
-        self.IDCardEntry_Var.set(       self.curr_mbr.cell_phone    )
-        self.BorthYearROCEntry_Var.set( self.curr_mbr.cell_phone    )
-        self.BorthYMDEntry_Var.set(     self.curr_mbr.cell_phone    )
-        self.AreaEntry_Var.set(         self.curr_mbr.cell_phone    )
-        self.CellPhoneEntry_Var.set(    self.curr_mbr.cell_phone    )
-        self.PhonePrimaryEntry_Var.set( self.curr_mbr.cell_phone    )
-        self.PhoneSecondEntry_Var.set(  self.curr_mbr.cell_phone    )
-        self.AddressEntry_Var.set(      self.curr_mbr.cell_phone    )
+        self.gui_qpixmap = QtGui.QPixmap( impath )
 
-    def GUI_blank_entry(self):
-        self.NameEntry_Var.set( "" )
-        self.CellPhoneEntry_Var.set( "" )
+        if self.gui_qpixmap.isNull():
+            self.gui_qpixmap = QtGui.QPixmap( mbr.DEFAULT_PHOTO )
+            print( "Photo Path is invalid, showing with default photo" )
 
-    def queryMember(self):
-        self.curr_mbr.load_from_db( self.QueryID_Var.get() )
+        lblsize = self.lbl_mbr_photo.size()
+        self.lbl_mbr_photo.setPixmap( self.gui_qpixmap.scaled( lblsize, QtCore.Qt.KeepAspectRatio ) )
 
-        self.PositionEntry_Var.set(     self.curr_mbr.position      )
-        self.NameEntry_Var.set(         self.curr_mbr.name          )
-        self.IDCardEntry_Var.set(       self.curr_mbr.id_card       )
-        self.BorthYearROCEntry_Var.set( self.curr_mbr.birthdayROC   )
-        self.BorthYMDEntry_Var.set(     self.curr_mbr.birthday      )
-        self.AreaEntry_Var.set(         self.curr_mbr.area          )
-        self.CellPhoneEntry_Var.set(    self.curr_mbr.cell_phone    )
-        self.PhonePrimaryEntry_Var.set( self.curr_mbr.phone         )
-        self.PhoneSecondEntry_Var.set(  self.curr_mbr.phone2        )
-        self.AddressEntry_Var.set(      self.curr_mbr.address       )
+    def gui_get_mbr_file_path( self ):
+        fname = QtWidgets.QFileDialog.getOpenFileName( self, '選擇一張照片', "./Resource", "Image Files (*.png *.jpg *.bmp)" )
+        if fname[0]:
+            import os
+            self.edit_mbr_photo_path.setText( os.path.relpath( fname[0] ) )
 
-    def SaveMemberInDB(self):
-        self.curr_mbr.position      = str( self.PositionEntry_Var.get()     )
-        self.curr_mbr.name          = str( self.NameEntry_Var.get()         )
-        self.curr_mbr.id_card       = str( self.IDCardEntry_Var.get()       )
-        self.curr_mbr.birthdayROC   = str( self.BorthYearROCEntry_Var.get() )
-        self.curr_mbr.birthday      = str( self.BorthYMDEntry_Var.get()     )
-        self.curr_mbr.area          = str( self.AreaEntry_Var.get()         )
-        self.curr_mbr.cell_phone    = str( self.CellPhoneEntry_Var.get()    )
-        self.curr_mbr.phone         = str( self.PhonePrimaryEntry_Var.get() )
-        self.curr_mbr.phone2        = str( self.PhoneSecondEntry_Var.get()  )
-        self.curr_mbr.address       = str( self.AddressEntry_Var.get()      )
+    def gui_save_curr_mbr_to_db( self ):
+        if True == self.gui_fill_curr_mbr_with_line_edit():
+            self.curr_mbr.save_to_db()
+            self.edit_mbr_id.setText( str( self.curr_mbr.mem_id ) )
 
-        self.curr_mbr.save_to_db()
+    def gui_update_curr_mbr_to_db( self ):
+        if True == self.gui_fill_curr_mbr_with_line_edit():
+            self.curr_mbr.update_to_db()
 
+    def gui_delete_curr_mbr( self ):
+        self.curr_mbr.delete_item( int( self.edit_mbr_id.text() ) )
+
+'''-----------------------------------------------------------
+Main entry point
+-----------------------------------------------------------'''
 def main():
-    root = tk.Tk()
-
-    root.geometry('{}x{}'.format( MainWindow_W, MainWindow_H ))
-    root.title( "蘆洲慢跑會員系統" )
-
-    app = Application( root )
-
-    root.mainloop()
+    import sys
+    app = QtWidgets.QApplication( sys.argv )
+    window = MainApp()
+    window.show()
+    sys.exit( app.exec_() )
 
 if __name__ == '__main__':
     main()
 
-
-"""
+'''-----------------------------------------------------------
 Reference
-
-1. Entry constructor and grid should be stated separatly
-   http://stackoverflow.com/questions/1101750/tkinter-attributeerror-nonetype-object-has-no-attribute-get
-2. Using lambda to call function instead handling by callback function
-   http://stackoverflow.com/questions/21943718/how-to-bind-the-enter-key-to-a-button-in-tkinter
-"""
+1. An framework to integrate UI file into a class:
+   http://pythonforengineers.com/your-first-gui-app-with-python-and-pyqt/
+2. http://stackoverflow.com/questions/30017853/sqlite3-table-into-qtablewidget-sqlite3-pyqt5
+-----------------------------------------------------------'''
