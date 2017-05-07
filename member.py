@@ -35,6 +35,24 @@ class ExcelItem( enm.IntEnum ):
     EXSL_CNT                = enm.auto()
 
 EXSL_BIRTH_DELIM        = '.'
+''' ---------------------------------------------
+Excel items sequence
+----------------------------------------------'''
+class DBItem( enm.IntEnum ):
+    DB_id               = 0
+    DB_position         = 1
+    DB_name             = 2
+    DB_idcard           = 3
+    DB_birthday_Y       = 4
+    DB_birthday_M       = 5
+    DB_birthday_D       = 6
+    DB_area             = 7
+    DB_cell_phone       = 8
+    DB_phone            = 9
+    DB_phone2           = 10
+    DB_address          = 11
+    DB_photo            = 12
+    DB_ITEM_CNT         = enm.auto()
 
 ''' ---------------------------------------------
 Main member class
@@ -233,10 +251,11 @@ class member:
                 if max_id % 10 == 4:
                     max_id += 1
 
+            self.__mem_id = max_id
             c.execute( '''INSERT INTO member
                           ( id, position, name, idcard, birthday_Y, birthday_M, birthday_D, area, cell_phone, phone, phone2, address, photo )
                           VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )''',
-                          ( max_id,
+                          ( self.__mem_id,
                             self.__position,
                             self.__name,
                             self.__id_card,
@@ -299,6 +318,8 @@ class member:
         self.drop_tbl()
         self.create_tbl()
 
+        add_id = 1
+
         with sql3.Connection( DB_FILE_NAME ) as conn:
             c = conn.cursor()
             for item in sheet_all.iter_rows( row_offset = 1 ):
@@ -306,9 +327,10 @@ class member:
                     print(int(item[0].value))
                     mbr_birthday_lst = self.birthday_str_to_list( item[ExcelItem.EXSL_BIRTHDAY_STR].value )
                     c.execute( '''INSERT INTO member
-                                  ( position, name, idcard, birthday_Y, birthday_M, birthday_D, area, cell_phone, phone, phone2, address, photo )
-                                  VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )''',
-                                  ( self.xstr( item[ExcelItem.EXSL_POSITION].value ),
+                                  ( id, position, name, idcard, birthday_Y, birthday_M, birthday_D, area, cell_phone, phone, phone2, address, photo )
+                                  VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )''',
+                                  ( add_id,
+                                    self.xstr( item[ExcelItem.EXSL_POSITION].value ),
                                     self.xstr( item[ExcelItem.EXSL_NAME].value ),
                                     self.xstr( item[ExcelItem.EXSL_IDCARD].value ),
                                     mbr_birthday_lst[0],
@@ -320,6 +342,9 @@ class member:
                                     self.xstr( item[ExcelItem.EXSL_PHONE2].value ),
                                     self.xstr( item[ExcelItem.EXSL_ADDRESS].value ),
                                     DEFAULT_PHOTO) )
+                    add_id += 1
+                    if add_id % 10 == 4:
+                        add_id += 1
 
     def cnvt_db_to_excel( self ):
         wb = pyxl.Workbook()
@@ -349,3 +374,10 @@ class member:
             birth_list = [ 0, 1, 1 ]
 
         return birth_list
+
+    def retrieve_all_data( self ):
+        with sql3.Connection( DB_FILE_NAME ) as conn:
+            c = conn.cursor()
+            c.execute('''SELECT * FROM member ''')
+            rows = c.fetchall()
+            return rows

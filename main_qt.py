@@ -8,6 +8,15 @@ Setting main window layout and class
 qtCreatorFile = "mainwindow.ui"
 UI_MainWindow, QtBaseClass = uic.loadUiType( qtCreatorFile )
 
+'''-----------------------------------------------------------
+Tab menu enum
+-----------------------------------------------------------'''
+TAB_MEMBER_INFO         = 0
+TAB_MEMBER_TABLE        = 1
+TAB_MEMBER_STATISTIC    = 2
+TAB_MEMBER_GROUP        = 3
+TAB_MEMBER_VOLUNTEER    = 4
+
 class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
     def __init__( self ):
         QtWidgets.QMainWindow.__init__( self )
@@ -39,6 +48,57 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
         self.btn_mbr_info_create.clicked.connect( self.gui_save_curr_mbr_to_db )
         self.btn_mbr_info_update.clicked.connect( self.gui_update_curr_mbr_to_db )
         self.btn_mbr_info_delete.clicked.connect( self.gui_delete_curr_mbr )
+
+        ''' ---------------------------------------------
+        Tab attributes
+        ----------------------------------------------'''
+        self.tabMenu.currentChanged.connect( self.gui_tab_change_hndl )
+
+    def gui_tab_change_hndl( self, curr_idx ):
+        if( TAB_MEMBER_TABLE == curr_idx ):
+            ''' ---------------------------------------------
+            Table is filled only when TAB_MEMBER_TABLE is selected
+            ----------------------------------------------'''
+            self.gui_fill_data_table()
+
+    def gui_fill_data_table( self ):
+        self.gui_remove_data_table()
+        self.gui_update_data_table()
+
+    def gui_update_data_table( self ):
+        mbrdata = self.curr_mbr.retrieve_all_data()
+
+        HeaderLabel = [
+            "編號", "職稱", "姓名", "身分證",  "出生年月日", "地區",
+            "手機", "電話1", "電話2", "地址" ]
+        self.mbrTable.setColumnCount( len( HeaderLabel ) )
+        self.mbrTable.setHorizontalHeaderLabels(HeaderLabel)
+        self.mbrTable.verticalHeader().setVisible(False)
+
+        for row in mbrdata:
+            indx = mbrdata.index( row )
+            birthstr = "{}.{}.{}".format( row[mbr.DBItem.DB_birthday_Y.value],
+                                          row[mbr.DBItem.DB_birthday_M.value],
+                                          row[mbr.DBItem.DB_birthday_D.value] )
+            self.mbrTable.insertRow( indx )
+            self.mbrTable.setItem( indx, 0, QtWidgets.QTableWidgetItem( str( row[mbr.DBItem.DB_id.value] ) ) )  # index
+            self.mbrTable.setItem( indx, 1, QtWidgets.QTableWidgetItem( row[mbr.DBItem.DB_position.value] ) )   # position
+            self.mbrTable.setItem( indx, 2, QtWidgets.QTableWidgetItem( row[mbr.DBItem.DB_name.value] ) )       # name
+            self.mbrTable.setItem( indx, 3, QtWidgets.QTableWidgetItem( row[mbr.DBItem.DB_idcard.value] ) )     # idcard number
+            self.mbrTable.setItem( indx, 4, QtWidgets.QTableWidgetItem( str( birthstr ) ) )                     # Birthday
+            self.mbrTable.setItem( indx, 5, QtWidgets.QTableWidgetItem( row[mbr.DBItem.DB_area.value] ) )       # area
+            self.mbrTable.setItem( indx, 6, QtWidgets.QTableWidgetItem( row[mbr.DBItem.DB_cell_phone.value] ) ) # cell phone
+            self.mbrTable.setItem( indx, 7, QtWidgets.QTableWidgetItem( row[mbr.DBItem.DB_phone.value] ) )      # phone
+            self.mbrTable.setItem( indx, 8, QtWidgets.QTableWidgetItem( row[mbr.DBItem.DB_phone2.value] ) )     # phone2
+            self.mbrTable.setItem( indx, 9, QtWidgets.QTableWidgetItem( row[mbr.DBItem.DB_address.value] ) )    # Address
+
+        for col in range( 0, len( HeaderLabel ) ):
+            self.mbrTable.horizontalHeader().setSectionResizeMode( col, QtWidgets.QHeaderView.ResizeToContents )
+
+    def gui_remove_data_table( self ):
+        rows = self.mbrTable.rowCount()
+        for row in range( 0, rows ):
+            self.mbrTable.removeRow( 0 )
 
     def gui_mbr_read_from_db( self ):
         try:
@@ -90,8 +150,9 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
             self.curr_mbr.phone2        = str( self.edit_mbr_phone2.text()      )
             self.curr_mbr.address       = str( self.edit_mbr_address.text()     )
             self.curr_mbr.photo         = str( self.edit_mbr_photo_path.text()  )
+            ret = True
 
-        return True
+        return ret
 
     def gui_mbr_info_update_photo( self ):
         impath = self.curr_mbr.photo
@@ -114,6 +175,7 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
     def gui_save_curr_mbr_to_db( self ):
         if True == self.gui_fill_curr_mbr_with_line_edit():
             self.curr_mbr.save_to_db()
+            self.edit_mbr_id.setText( str( self.curr_mbr.mem_id ) )
 
     def gui_update_curr_mbr_to_db( self ):
         if True == self.gui_fill_curr_mbr_with_line_edit():
@@ -139,4 +201,5 @@ if __name__ == '__main__':
 Reference
 1. An framework to integrate UI file into a class:
    http://pythonforengineers.com/your-first-gui-app-with-python-and-pyqt/
+2. http://stackoverflow.com/questions/30017853/sqlite3-table-into-qtablewidget-sqlite3-pyqt5
 -----------------------------------------------------------'''

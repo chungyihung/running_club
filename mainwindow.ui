@@ -371,7 +371,7 @@
       <property name="frameShadow">
        <enum>QFrame::Raised</enum>
       </property>
-      <widget class="QTableWidget" name="tableWidget">
+      <widget class="QTableWidget" name="mbrTable">
        <property name="geometry">
         <rect>
          <x>10</x>
@@ -388,12 +388,12 @@
       <string>統計資料</string>
      </attribute>
     </widget>
-    <widget class="QWidget" name="tab">
+    <widget class="QWidget" name="TabGroup">
      <attribute name="title">
       <string>分組名單</string>
      </attribute>
     </widget>
-    <widget class="QWidget" name="tab_2">
+    <widget class="QWidget" name="TabVolunteer">
      <attribute name="title">
       <string>馬拉松志工調度</string>
      </attribute>
