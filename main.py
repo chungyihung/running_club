@@ -1,5 +1,9 @@
 #!/usr/local/bin/python3
+# -*- coding:utf-8 -*-
+import os
+import json
 import member as mbr
+import competition as cmpt
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 
 '''-----------------------------------------------------------
@@ -9,13 +13,20 @@ qtCreatorFile = "mainwindow.ui"
 UI_MainWindow, QtBaseClass = uic.loadUiType( qtCreatorFile )
 
 '''-----------------------------------------------------------
-Tab menu enum
+Tab member menu enum
 -----------------------------------------------------------'''
 TAB_MEMBER_INFO         = 0
 TAB_MEMBER_TABLE        = 1
 TAB_MEMBER_STATISTIC    = 2
 TAB_MEMBER_GROUP        = 3
 TAB_MEMBER_VOLUNTEER    = 4
+
+'''-----------------------------------------------------------
+Tab competition menu enum
+-----------------------------------------------------------'''
+TAB_CMPT_MENU_SETUP     = 0
+TAB_CMPT_MENU_MBR_TBL   = 1
+TAB_CMPT_MENU_STATISTIC = 2
 
 class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
     def __init__( self ):
@@ -33,11 +44,10 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
         self.edit_mbr_birth_ROC.setValidator( QtGui.QIntValidator( 0, 1000, self ) )
 
         ''' ---------------------------------------------
-        Connect each widget to its method
+        Tab of Member Init
         ----------------------------------------------'''
         # Line Edit Widget
         self.edit_mbr_id.editingFinished.connect( self.gui_mbr_read_from_db )   # Or use returnPressed signal
-
 
         # Menubar action
         self.actionExport_to_excel.triggered.connect( self.curr_mbr.cnvt_db_to_excel )
@@ -50,17 +60,26 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
         self.btn_mbr_info_delete.clicked.connect( self.gui_delete_curr_mbr )
 
         ''' ---------------------------------------------
-        Tab attributes
+        Tab of Competition Init
         ----------------------------------------------'''
-        self.tabMenu.currentChanged.connect( self.gui_tab_change_hndl )
+        self.tab_member_menu.currentChanged.connect( self.gui_tab_member_menu_change_hndl )
 
-    def gui_tab_change_hndl( self, curr_idx ):
+        self.cmbo_selc_competition.currentIndexChanged.connect(
+            self.gui_cmbo_selc_competition_chng
+            )
+
+        self.gui_cmbo_selc_competition_init()
+
+    def gui_tab_member_menu_change_hndl( self, curr_idx ):
         if( TAB_MEMBER_TABLE == curr_idx ):
             ''' ---------------------------------------------
             Table is filled only when TAB_MEMBER_TABLE is selected
             ----------------------------------------------'''
             self.gui_fill_data_table()
 
+    ''' ---------------------------------------------
+    Member Table procedure
+    ----------------------------------------------'''
     def gui_fill_data_table( self ):
         self.gui_remove_data_table()
         self.gui_update_data_table()
@@ -100,6 +119,9 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
         for row in range( 0, rows ):
             self.mbrTable.removeRow( 0 )
 
+    ''' ---------------------------------------------
+    Edit member widgets procedures
+    ----------------------------------------------'''
     def gui_mbr_read_from_db( self ):
         try:
             query_id = int(self.edit_mbr_id.text())
@@ -184,6 +206,31 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
     def gui_delete_curr_mbr( self ):
         self.curr_mbr.delete_item( int( self.edit_mbr_id.text() ) )
 
+    ''' ---------------------------------------------
+    Competition Tab Widgets action callback
+    ----------------------------------------------'''
+    def gui_cmbo_selc_competition_init( self ):
+        self.cmbo_selc_competition.addItem( "請選擇賽事" )
+        for name in os.listdir( cmpt.CMPT_RSC_BASE_PATH ):
+            if os.path.isdir( "{}{}".format( cmpt.CMPT_RSC_BASE_PATH, name ) ):
+                self.cmbo_selc_competition.addItem( name )
+
+    def gui_cmbo_selc_competition_chng( self, i ):
+        ''' ---------------------------------------------
+        Note that we should restrict file encoding as utf8
+        ----------------------------------------------'''
+        print("[cmbo_selc_cmpt]: select {} ( {} )".format( i, self.cmbo_selc_competition.currentText() ))
+        if i != 0:
+            cmpt_filename = "{}{}/cmpt.json".format(
+                cmpt.CMPT_RSC_BASE_PATH,
+                self.cmbo_selc_competition.currentText() )
+            with open(cmpt_filename, "r", encoding='utf-8', errors='ignore' ) as cmpt_info:
+                cmpt_data = json.load( cmpt_info )
+                print(cmpt_data)
+                self.edit_cmpt_name.setText( "{}".format( cmpt_data['name']))
+                self.edit_cmpt_location.setText( "{}".format( cmpt_data['location']))
+                self.edit_cmpt_date.setText( "{}".format( cmpt_data['date']))
+
 '''-----------------------------------------------------------
 Main entry point
 -----------------------------------------------------------'''
@@ -202,4 +249,8 @@ Reference
 1. An framework to integrate UI file into a class:
    http://pythonforengineers.com/your-first-gui-app-with-python-and-pyqt/
 2. http://stackoverflow.com/questions/30017853/sqlite3-table-into-qtablewidget-sqlite3-pyqt5
+3. ComboBox: https://www.tutorialspoint.com/pyqt/pyqt_qcombobox_widget.htm
+4. Json load with UTF-8:
+    http://stackoverflow.com/questions/12468179/unicodedecodeerror-utf8-codec-cant-decode-byte-0x9c
+5. http://stackoverflow.com/questions/19699367/unicodedecodeerror-utf-8-codec-cant-decode-byte
 -----------------------------------------------------------'''

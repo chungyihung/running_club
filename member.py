@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+# -*- coding:utf-8 -*-
 
 import sqlite3 as sql3
 import openpyxl as pyxl

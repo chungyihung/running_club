@@ -6,397 +6,828 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>791</width>
-    <height>595</height>
+    <width>822</width>
+    <height>676</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>蘆洲慢跑會員系統</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QTabWidget" name="tabMenu">
+   <widget class="QTabWidget" name="tab_top_menu">
     <property name="geometry">
      <rect>
       <x>10</x>
       <y>10</y>
-      <width>771</width>
-      <height>531</height>
+      <width>791</width>
+      <height>601</height>
      </rect>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>1</number>
     </property>
-    <widget class="QWidget" name="TabMemberInfo">
+    <widget class="QWidget" name="TabMember">
      <attribute name="title">
-      <string>會員資料</string>
+      <string>蘆洲慢跑會員</string>
      </attribute>
-     <widget class="QFrame" name="frame_mbr_info">
+     <widget class="QTabWidget" name="tab_member_menu">
       <property name="geometry">
        <rect>
         <x>10</x>
         <y>10</y>
-        <width>751</width>
-        <height>481</height>
+        <width>771</width>
+        <height>551</height>
        </rect>
       </property>
-      <property name="frameShape">
-       <enum>QFrame::StyledPanel</enum>
+      <property name="currentIndex">
+       <number>0</number>
       </property>
-      <property name="frameShadow">
-       <enum>QFrame::Raised</enum>
-      </property>
-      <widget class="QLabel" name="lbl_mbr_photo">
-       <property name="geometry">
-        <rect>
-         <x>450</x>
-         <y>20</y>
-         <width>200</width>
-         <height>250</height>
-        </rect>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>50</width>
-         <height>50</height>
-        </size>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-       <property name="scaledContents">
-        <bool>false</bool>
-       </property>
-      </widget>
-      <widget class="QWidget" name="gridLayoutWidget_2">
-       <property name="geometry">
-        <rect>
-         <x>450</x>
-         <y>365</y>
-         <width>261</width>
-         <height>41</height>
-        </rect>
-       </property>
-       <layout class="QGridLayout" name="gridLayout_3">
-        <item row="0" column="0">
-         <widget class="QPushButton" name="btn_mbr_info_create">
-          <property name="text">
-           <string>Create</string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="1">
-         <widget class="QPushButton" name="btn_mbr_info_update">
-          <property name="text">
-           <string>Update</string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="2">
-         <widget class="QPushButton" name="btn_mbr_info_delete">
-          <property name="text">
-           <string>Delete</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-      <widget class="QWidget" name="formLayoutWidget">
-       <property name="geometry">
-        <rect>
-         <x>20</x>
-         <y>20</y>
-         <width>398</width>
-         <height>423</height>
-        </rect>
-       </property>
-       <layout class="QFormLayout" name="formLayout_2">
-        <item row="0" column="0">
-         <widget class="QLabel" name="lbl_mbr_id">
-          <property name="text">
-           <string>會員編號</string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="1">
-         <widget class="QLineEdit" name="edit_mbr_id">
-          <property name="minimumSize">
-           <size>
-            <width>250</width>
-            <height>0</height>
-           </size>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="0">
-         <widget class="QLabel" name="lbl_mbr_position">
-          <property name="text">
-           <string>職稱</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="1">
-         <widget class="QLineEdit" name="edit_mbr_position">
-          <property name="minimumSize">
-           <size>
-            <width>250</width>
-            <height>0</height>
-           </size>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="0">
-         <widget class="QLabel" name="lbl_mbr_group">
-          <property name="text">
-           <string>分組</string>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="1">
-         <widget class="QLineEdit" name="edit_mbr_group">
-          <property name="minimumSize">
-           <size>
-            <width>250</width>
-            <height>0</height>
-           </size>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="0">
-         <widget class="QLabel" name="lbl_mbr_name">
-          <property name="text">
-           <string>姓名</string>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="1">
-         <widget class="QLineEdit" name="edit_mbr_name">
-          <property name="minimumSize">
-           <size>
-            <width>250</width>
-            <height>0</height>
-           </size>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="0">
-         <widget class="QLabel" name="lbl_mbr_idcard">
-          <property name="text">
-           <string>身分證</string>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="1">
-         <widget class="QLineEdit" name="edit_mbr_idcard">
-          <property name="minimumSize">
-           <size>
-            <width>250</width>
-            <height>0</height>
-           </size>
-          </property>
-         </widget>
-        </item>
-        <item row="5" column="0">
-         <widget class="QLabel" name="lbl_mbr_birth_ROC">
-          <property name="text">
-           <string>年次</string>
-          </property>
-         </widget>
-        </item>
-        <item row="5" column="1">
-         <widget class="QLineEdit" name="edit_mbr_birth_ROC">
-          <property name="minimumSize">
-           <size>
-            <width>250</width>
-            <height>0</height>
-           </size>
-          </property>
-         </widget>
-        </item>
-        <item row="6" column="0">
-         <widget class="QLabel" name="lbl_mbr_birthday">
-          <property name="text">
-           <string>生日</string>
-          </property>
-         </widget>
-        </item>
-        <item row="6" column="1">
-         <widget class="QLineEdit" name="edit_mbr_birthday">
-          <property name="minimumSize">
-           <size>
-            <width>250</width>
-            <height>0</height>
-           </size>
-          </property>
-         </widget>
-        </item>
-        <item row="7" column="0">
-         <widget class="QLabel" name="lbl_mbr_phone1">
-          <property name="text">
-           <string>電話</string>
-          </property>
-         </widget>
-        </item>
-        <item row="7" column="1">
-         <widget class="QLineEdit" name="edit_mbr_phone1">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-            <horstretch>2</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>250</width>
-            <height>0</height>
-           </size>
-          </property>
-         </widget>
-        </item>
-        <item row="8" column="0">
-         <widget class="QLabel" name="lbl_mbr_phone2">
-          <property name="text">
-           <string>電話(2)</string>
-          </property>
-         </widget>
-        </item>
-        <item row="8" column="1">
-         <widget class="QLineEdit" name="edit_mbr_phone2">
-          <property name="minimumSize">
-           <size>
-            <width>250</width>
-            <height>0</height>
-           </size>
-          </property>
-         </widget>
-        </item>
-        <item row="9" column="0">
-         <widget class="QLabel" name="lbl_mbr_cellphone">
-          <property name="text">
-           <string>手機</string>
-          </property>
-         </widget>
-        </item>
-        <item row="9" column="1">
-         <widget class="QLineEdit" name="edit_mbr_cellphone">
-          <property name="minimumSize">
-           <size>
-            <width>250</width>
-            <height>0</height>
-           </size>
-          </property>
-         </widget>
-        </item>
-        <item row="10" column="0">
-         <widget class="QLabel" name="lbl_mbr_area">
-          <property name="text">
-           <string>區域</string>
-          </property>
-         </widget>
-        </item>
-        <item row="10" column="1">
-         <widget class="QLineEdit" name="edit_mbr_area">
-          <property name="minimumSize">
-           <size>
-            <width>250</width>
-            <height>0</height>
-           </size>
-          </property>
-         </widget>
-        </item>
-        <item row="11" column="0">
-         <widget class="QLabel" name="lbl_mbr_address">
-          <property name="text">
-           <string>通訊地址</string>
-          </property>
-         </widget>
-        </item>
-        <item row="11" column="1">
-         <widget class="QLineEdit" name="edit_mbr_address">
-          <property name="minimumSize">
-           <size>
-            <width>250</width>
-            <height>0</height>
-           </size>
-          </property>
-         </widget>
-        </item>
-        <item row="12" column="0">
-         <widget class="QLabel" name="lbl_mbr_photo_path">
-          <property name="text">
-           <string>照片位置</string>
-          </property>
-         </widget>
-        </item>
-        <item row="12" column="1">
-         <layout class="QGridLayout" name="gridLayout">
-          <item row="0" column="0">
-           <widget class="QLineEdit" name="edit_mbr_photo_path">
-            <property name="minimumSize">
-             <size>
-              <width>250</width>
-              <height>0</height>
-             </size>
-            </property>
-           </widget>
+      <widget class="QWidget" name="TabMemberInfo">
+       <attribute name="title">
+        <string>會員資料</string>
+       </attribute>
+       <widget class="QFrame" name="frame_mbr_info">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>10</y>
+          <width>761</width>
+          <height>481</height>
+         </rect>
+        </property>
+        <property name="frameShape">
+         <enum>QFrame::StyledPanel</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Raised</enum>
+        </property>
+        <widget class="QLabel" name="lbl_mbr_photo">
+         <property name="geometry">
+          <rect>
+           <x>440</x>
+           <y>30</y>
+           <width>261</width>
+           <height>291</height>
+          </rect>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>50</width>
+           <height>50</height>
+          </size>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="pixmap">
+          <pixmap>Resource/none_photo.jpg</pixmap>
+         </property>
+         <property name="scaledContents">
+          <bool>false</bool>
+         </property>
+        </widget>
+        <widget class="QWidget" name="verticalLayoutWidget">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>30</y>
+           <width>385</width>
+           <height>420</height>
+          </rect>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_3">
+          <item>
+           <layout class="QFormLayout" name="formLayout_2">
+            <item row="0" column="1">
+             <widget class="QLineEdit" name="edit_mbr_id">
+              <property name="minimumSize">
+               <size>
+                <width>250</width>
+                <height>0</height>
+               </size>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QLabel" name="lbl_mbr_position">
+              <property name="text">
+               <string>職稱</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QLineEdit" name="edit_mbr_position">
+              <property name="minimumSize">
+               <size>
+                <width>250</width>
+                <height>0</height>
+               </size>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="0">
+             <widget class="QLabel" name="lbl_mbr_name">
+              <property name="text">
+               <string>姓名</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="1">
+             <widget class="QLineEdit" name="edit_mbr_name">
+              <property name="minimumSize">
+               <size>
+                <width>250</width>
+                <height>0</height>
+               </size>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="0">
+             <widget class="QLabel" name="lbl_mbr_idcard">
+              <property name="text">
+               <string>身分證</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="1">
+             <widget class="QLineEdit" name="edit_mbr_idcard">
+              <property name="minimumSize">
+               <size>
+                <width>250</width>
+                <height>0</height>
+               </size>
+              </property>
+             </widget>
+            </item>
+            <item row="4" column="0">
+             <widget class="QLabel" name="lbl_mbr_birth_ROC">
+              <property name="text">
+               <string>年次</string>
+              </property>
+             </widget>
+            </item>
+            <item row="4" column="1">
+             <widget class="QLineEdit" name="edit_mbr_birth_ROC">
+              <property name="minimumSize">
+               <size>
+                <width>250</width>
+                <height>0</height>
+               </size>
+              </property>
+             </widget>
+            </item>
+            <item row="5" column="0">
+             <widget class="QLabel" name="lbl_mbr_birthday">
+              <property name="text">
+               <string>生日</string>
+              </property>
+             </widget>
+            </item>
+            <item row="5" column="1">
+             <widget class="QLineEdit" name="edit_mbr_birthday">
+              <property name="minimumSize">
+               <size>
+                <width>250</width>
+                <height>0</height>
+               </size>
+              </property>
+             </widget>
+            </item>
+            <item row="6" column="0">
+             <widget class="QLabel" name="lbl_mbr_phone1">
+              <property name="text">
+               <string>電話</string>
+              </property>
+             </widget>
+            </item>
+            <item row="6" column="1">
+             <widget class="QLineEdit" name="edit_mbr_phone1">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>2</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>250</width>
+                <height>0</height>
+               </size>
+              </property>
+             </widget>
+            </item>
+            <item row="7" column="0">
+             <widget class="QLabel" name="lbl_mbr_phone2">
+              <property name="text">
+               <string>電話(2)</string>
+              </property>
+             </widget>
+            </item>
+            <item row="7" column="1">
+             <widget class="QLineEdit" name="edit_mbr_phone2">
+              <property name="minimumSize">
+               <size>
+                <width>250</width>
+                <height>0</height>
+               </size>
+              </property>
+             </widget>
+            </item>
+            <item row="8" column="0">
+             <widget class="QLabel" name="lbl_mbr_cellphone">
+              <property name="text">
+               <string>手機</string>
+              </property>
+             </widget>
+            </item>
+            <item row="8" column="1">
+             <widget class="QLineEdit" name="edit_mbr_cellphone">
+              <property name="minimumSize">
+               <size>
+                <width>250</width>
+                <height>0</height>
+               </size>
+              </property>
+             </widget>
+            </item>
+            <item row="9" column="0">
+             <widget class="QLabel" name="lbl_mbr_area">
+              <property name="text">
+               <string>區域</string>
+              </property>
+             </widget>
+            </item>
+            <item row="9" column="1">
+             <widget class="QLineEdit" name="edit_mbr_area">
+              <property name="minimumSize">
+               <size>
+                <width>250</width>
+                <height>0</height>
+               </size>
+              </property>
+             </widget>
+            </item>
+            <item row="10" column="0">
+             <widget class="QLabel" name="lbl_mbr_address">
+              <property name="text">
+               <string>通訊地址</string>
+              </property>
+             </widget>
+            </item>
+            <item row="10" column="1">
+             <widget class="QLineEdit" name="edit_mbr_address">
+              <property name="minimumSize">
+               <size>
+                <width>250</width>
+                <height>0</height>
+               </size>
+              </property>
+             </widget>
+            </item>
+            <item row="11" column="0">
+             <widget class="QLabel" name="lbl_mbr_photo_path">
+              <property name="text">
+               <string>照片位置</string>
+              </property>
+             </widget>
+            </item>
+            <item row="11" column="1">
+             <layout class="QGridLayout" name="gridLayout">
+              <item row="0" column="0">
+               <widget class="QLineEdit" name="edit_mbr_photo_path">
+                <property name="minimumSize">
+                 <size>
+                  <width>250</width>
+                  <height>0</height>
+                 </size>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QPushButton" name="btn_mbr_info_img_file_diag">
+                <property name="text">
+                 <string>選擇</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item row="0" column="0">
+             <widget class="QLabel" name="lbl_mbr_id">
+              <property name="text">
+               <string>會員編號</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
-          <item row="0" column="1">
-           <widget class="QPushButton" name="btn_mbr_info_img_file_diag">
-            <property name="text">
-             <string>選擇</string>
-            </property>
-           </widget>
+          <item>
+           <layout class="QGridLayout" name="gridLayout_3">
+            <item row="0" column="1">
+             <widget class="QPushButton" name="btn_mbr_info_update">
+              <property name="text">
+               <string>更新目前會員</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="2">
+             <widget class="QPushButton" name="btn_mbr_info_delete">
+              <property name="text">
+               <string>刪除會員</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="0">
+             <widget class="QPushButton" name="btn_mbr_info_create">
+              <property name="text">
+               <string>建立新會員</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
          </layout>
-        </item>
-       </layout>
+        </widget>
+       </widget>
+      </widget>
+      <widget class="QWidget" name="TabMemberTable">
+       <attribute name="title">
+        <string>會員清單</string>
+       </attribute>
+       <widget class="QFrame" name="frame_mbr_table">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>0</y>
+          <width>761</width>
+          <height>501</height>
+         </rect>
+        </property>
+        <property name="frameShape">
+         <enum>QFrame::StyledPanel</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Raised</enum>
+        </property>
+        <widget class="QTableWidget" name="mbrTable">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>0</y>
+           <width>761</width>
+           <height>501</height>
+          </rect>
+         </property>
+        </widget>
+       </widget>
+       <widget class="QCheckBox" name="chkb_modifiable_lock">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>500</y>
+          <width>87</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>防寫鎖定</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
       </widget>
      </widget>
     </widget>
-    <widget class="QWidget" name="TabMemberTable">
+    <widget class="QWidget" name="TabMarathonCompetition">
      <attribute name="title">
-      <string>會員清單</string>
+      <string>馬拉松賽事</string>
      </attribute>
-     <widget class="QFrame" name="frame_mbr_table">
+     <widget class="QTabWidget" name="tab_competition_menu">
       <property name="geometry">
        <rect>
         <x>10</x>
         <y>10</y>
-        <width>741</width>
-        <height>481</height>
+        <width>771</width>
+        <height>541</height>
        </rect>
       </property>
-      <property name="frameShape">
-       <enum>QFrame::StyledPanel</enum>
+      <property name="currentIndex">
+       <number>0</number>
       </property>
-      <property name="frameShadow">
-       <enum>QFrame::Raised</enum>
-      </property>
-      <widget class="QTableWidget" name="mbrTable">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>10</y>
-         <width>721</width>
-         <height>461</height>
-        </rect>
-       </property>
+      <widget class="QWidget" name="TabMarathonSetup">
+       <attribute name="title">
+        <string>賽事設定</string>
+       </attribute>
+       <widget class="QWidget" name="verticalLayoutWidget_2">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>30</y>
+          <width>316</width>
+          <height>431</height>
+         </rect>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_2">
+         <item>
+          <layout class="QFormLayout" name="formLayout">
+           <property name="sizeConstraint">
+            <enum>QLayout::SetFixedSize</enum>
+           </property>
+           <property name="labelAlignment">
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+           </property>
+           <property name="formAlignment">
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+           </property>
+           <item row="0" column="0">
+            <widget class="QLabel" name="lbl_cmpt_name">
+             <property name="text">
+              <string>賽事名稱</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QLineEdit" name="edit_cmpt_name">
+             <property name="minimumSize">
+              <size>
+               <width>250</width>
+               <height>0</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="lbl_cmpt_location">
+             <property name="text">
+              <string>比賽地點</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QLineEdit" name="edit_cmpt_location">
+             <property name="minimumSize">
+              <size>
+               <width>250</width>
+               <height>0</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="lbl_cmpt_date">
+             <property name="text">
+              <string>比賽日期</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QLineEdit" name="edit_cmpt_date">
+             <property name="minimumSize">
+              <size>
+               <width>250</width>
+               <height>0</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <layout class="QFormLayout" name="formLayout_3">
+           <property name="labelAlignment">
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+           </property>
+           <property name="formAlignment">
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+           </property>
+           <item row="0" column="0">
+            <widget class="QLabel" name="lbl_cmpt_mbr_id">
+             <property name="text">
+              <string>人員編號</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QLineEdit" name="edit_cmpt_mbr_id">
+             <property name="minimumSize">
+              <size>
+               <width>250</width>
+               <height>0</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="lbl_cmpt_mbr_name">
+             <property name="text">
+              <string>姓名</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QLineEdit" name="edit_cmpt_mbr_name">
+             <property name="minimumSize">
+              <size>
+               <width>250</width>
+               <height>0</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="lbl_cmpt_mbr_phone">
+             <property name="text">
+              <string>手機</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QLineEdit" name="edit_cmpt_mbr_phone">
+             <property name="minimumSize">
+              <size>
+               <width>250</width>
+               <height>0</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="0">
+            <widget class="QLabel" name="lbl_cmpt_mbr_job_primary">
+             <property name="text">
+              <string>主任務</string>
+             </property>
+            </widget>
+           </item>
+           <item row="6" column="0">
+            <widget class="QLabel" name="lbl_cmpt_mbr_job_snd_1">
+             <property name="text">
+              <string>次任務1</string>
+             </property>
+            </widget>
+           </item>
+           <item row="7" column="0">
+            <widget class="QLabel" name="lbl_cmpt_mbr_job_snd_2">
+             <property name="text">
+              <string>次任務2</string>
+             </property>
+            </widget>
+           </item>
+           <item row="8" column="0">
+            <widget class="QLabel" name="lbl_cmpt_mbr_tshirt_sz">
+             <property name="text">
+              <string>上衣尺寸</string>
+             </property>
+            </widget>
+           </item>
+           <item row="9" column="0">
+            <widget class="QLabel" name="lbl_cmpt_mbr_coat_sz">
+             <property name="text">
+              <string>風衣尺寸</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="0">
+            <widget class="QLabel" name="lbl_cmpt_mbr_idcard">
+             <property name="text">
+              <string>身分證號</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="0">
+            <widget class="QLabel" name="lbl_cmpt_mbr_vegetarian">
+             <property name="text">
+              <string>餐點葷素</string>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="1">
+            <widget class="QComboBox" name="cmbo_cmpt_primary_job">
+             <property name="minimumSize">
+              <size>
+               <width>250</width>
+               <height>0</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+           <item row="6" column="1">
+            <widget class="QComboBox" name="cmbo_cmpt_sec_job_1">
+             <property name="minimumSize">
+              <size>
+               <width>250</width>
+               <height>0</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+           <item row="7" column="1">
+            <widget class="QComboBox" name="cmbo_cmpt_sec_job_2">
+             <property name="minimumSize">
+              <size>
+               <width>250</width>
+               <height>0</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+           <item row="8" column="1">
+            <widget class="QComboBox" name="cmbo_cmpt_tshirt_sz">
+             <property name="minimumSize">
+              <size>
+               <width>250</width>
+               <height>0</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+           <item row="9" column="1">
+            <widget class="QComboBox" name="cmbo_cmpt_coat_sz">
+             <property name="minimumSize">
+              <size>
+               <width>250</width>
+               <height>0</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="1">
+            <widget class="QLineEdit" name="edit_cmpt_mbr_idcard">
+             <property name="minimumSize">
+              <size>
+               <width>250</width>
+               <height>0</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="1">
+            <widget class="QComboBox" name="cmbo_cmpt_vegetarian">
+             <property name="minimumSize">
+              <size>
+               <width>250</width>
+               <height>0</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="verticalLayoutWidget_3">
+        <property name="geometry">
+         <rect>
+          <x>360</x>
+          <y>30</y>
+          <width>261</width>
+          <height>80</height>
+         </rect>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_4">
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout">
+           <property name="spacing">
+            <number>-1</number>
+           </property>
+           <item>
+            <widget class="QLabel" name="lbl_choose_cmpt_name">
+             <property name="text">
+              <string>選擇賽事</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QComboBox" name="cmbo_selc_competition">
+             <property name="minimumSize">
+              <size>
+               <width>200</width>
+               <height>0</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_2">
+           <item>
+            <widget class="QPushButton" name="btn_cmpt_create">
+             <property name="text">
+              <string>新增賽事</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="btn_cmpt_update">
+             <property name="text">
+              <string>更新賽事</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="verticalLayoutWidget_4">
+        <property name="geometry">
+         <rect>
+          <x>360</x>
+          <y>260</y>
+          <width>310</width>
+          <height>80</height>
+         </rect>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_5">
+         <property name="spacing">
+          <number>0</number>
+         </property>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_3">
+           <property name="spacing">
+            <number>-1</number>
+           </property>
+           <item>
+            <widget class="QLabel" name="lbl_cmpt_job_list">
+             <property name="text">
+              <string>任務清單</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QComboBox" name="cmbo_cmpt_job_list">
+             <property name="minimumSize">
+              <size>
+               <width>250</width>
+               <height>0</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_4">
+           <item>
+            <widget class="QPushButton" name="btn_cmpt_job_create">
+             <property name="text">
+              <string>新增任務</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="btn_cmpt_job_update">
+             <property name="text">
+              <string>更新名稱</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="btn_cmpt_job_delete">
+             <property name="text">
+              <string>刪除任務</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </widget>
+      </widget>
+      <widget class="QWidget" name="TabWorkerTable">
+       <attribute name="title">
+        <string>工作人員清單</string>
+       </attribute>
+       <widget class="QTableWidget" name="maraWorkerTbl">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>10</y>
+          <width>761</width>
+          <height>501</height>
+         </rect>
+        </property>
+       </widget>
+      </widget>
+      <widget class="QWidget" name="TabMaraStatistic">
+       <attribute name="title">
+        <string>統計</string>
+       </attribute>
       </widget>
      </widget>
-    </widget>
-    <widget class="QWidget" name="TabStatistic">
-     <attribute name="title">
-      <string>統計資料</string>
-     </attribute>
-    </widget>
-    <widget class="QWidget" name="TabGroup">
-     <attribute name="title">
-      <string>分組名單</string>
-     </attribute>
-    </widget>
-    <widget class="QWidget" name="TabVolunteer">
-     <attribute name="title">
-      <string>馬拉松志工調度</string>
-     </attribute>
     </widget>
    </widget>
   </widget>
@@ -405,13 +836,13 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>791</width>
+     <width>822</width>
      <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
     <property name="title">
-     <string>File</string>
+     <string>會員資料</string>
     </property>
     <addaction name="separator"/>
     <addaction name="actionImport_from_excel"/>
@@ -422,12 +853,12 @@
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionImport_from_excel">
    <property name="text">
-    <string>Import from excel</string>
+    <string>從Excel匯入</string>
    </property>
   </action>
   <action name="actionExport_to_excel">
    <property name="text">
-    <string>Export to excel</string>
+    <string>匯出至Excel</string>
    </property>
   </action>
  </widget>
