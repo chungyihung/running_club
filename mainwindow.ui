@@ -91,7 +91,7 @@
           <rect>
            <x>10</x>
            <y>30</y>
-           <width>385</width>
+           <width>423</width>
            <height>420</height>
           </rect>
          </property>
@@ -424,8 +424,8 @@
          <rect>
           <x>10</x>
           <y>30</y>
-          <width>316</width>
-          <height>431</height>
+          <width>372</width>
+          <height>463</height>
          </rect>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -515,14 +515,14 @@
             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
            </property>
            <item row="0" column="0">
-            <widget class="QLabel" name="lbl_cmpt_mbr_id">
+            <widget class="QLabel" name="lbl_cmpt_worker_id">
              <property name="text">
               <string>人員編號</string>
              </property>
             </widget>
            </item>
            <item row="0" column="1">
-            <widget class="QLineEdit" name="edit_cmpt_mbr_id">
+            <widget class="QLineEdit" name="edit_cmpt_worker_id">
              <property name="minimumSize">
               <size>
                <width>250</width>
@@ -532,14 +532,21 @@
             </widget>
            </item>
            <item row="1" column="0">
-            <widget class="QLabel" name="lbl_cmpt_mbr_name">
+            <widget class="QLabel" name="lbl_cmpt_worker_name">
              <property name="text">
               <string>姓名</string>
              </property>
             </widget>
            </item>
-           <item row="1" column="1">
-            <widget class="QLineEdit" name="edit_cmpt_mbr_name">
+           <item row="3" column="0">
+            <widget class="QLabel" name="lbl_cmpt_worker_phone">
+             <property name="text">
+              <string>手機</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="1">
+            <widget class="QLineEdit" name="edit_cmpt_worker_phone">
              <property name="minimumSize">
               <size>
                <width>250</width>
@@ -548,15 +555,15 @@
              </property>
             </widget>
            </item>
-           <item row="2" column="0">
-            <widget class="QLabel" name="lbl_cmpt_mbr_phone">
+           <item row="4" column="0">
+            <widget class="QLabel" name="lbl_cmpt_worker_vegetarian">
              <property name="text">
-              <string>手機</string>
+              <string>餐點葷素</string>
              </property>
             </widget>
            </item>
-           <item row="2" column="1">
-            <widget class="QLineEdit" name="edit_cmpt_mbr_phone">
+           <item row="4" column="1">
+            <widget class="QComboBox" name="cmbo_cmpt_worker_vegetarian">
              <property name="minimumSize">
               <size>
                <width>250</width>
@@ -566,96 +573,82 @@
             </widget>
            </item>
            <item row="5" column="0">
-            <widget class="QLabel" name="lbl_cmpt_mbr_job_primary">
-             <property name="text">
-              <string>主任務</string>
-             </property>
-            </widget>
-           </item>
-           <item row="6" column="0">
-            <widget class="QLabel" name="lbl_cmpt_mbr_job_snd_1">
-             <property name="text">
-              <string>次任務1</string>
-             </property>
-            </widget>
-           </item>
-           <item row="7" column="0">
-            <widget class="QLabel" name="lbl_cmpt_mbr_job_snd_2">
-             <property name="text">
-              <string>次任務2</string>
-             </property>
-            </widget>
-           </item>
-           <item row="8" column="0">
-            <widget class="QLabel" name="lbl_cmpt_mbr_tshirt_sz">
-             <property name="text">
-              <string>上衣尺寸</string>
-             </property>
-            </widget>
-           </item>
-           <item row="9" column="0">
-            <widget class="QLabel" name="lbl_cmpt_mbr_coat_sz">
-             <property name="text">
-              <string>風衣尺寸</string>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="0">
-            <widget class="QLabel" name="lbl_cmpt_mbr_idcard">
+            <widget class="QLabel" name="lbl_cmpt_worker_idcard">
              <property name="text">
               <string>身分證號</string>
              </property>
             </widget>
            </item>
-           <item row="3" column="0">
-            <widget class="QLabel" name="lbl_cmpt_mbr_vegetarian">
-             <property name="text">
-              <string>餐點葷素</string>
-             </property>
-            </widget>
-           </item>
            <item row="5" column="1">
-            <widget class="QComboBox" name="cmbo_cmpt_primary_job">
+            <widget class="QLineEdit" name="edit_cmpt_worker_idcard">
              <property name="minimumSize">
               <size>
                <width>250</width>
                <height>0</height>
               </size>
+             </property>
+            </widget>
+           </item>
+           <item row="6" column="0">
+            <widget class="QLabel" name="lbl_cmpt_worker_job_primary">
+             <property name="text">
+              <string>主任務</string>
              </property>
             </widget>
            </item>
            <item row="6" column="1">
-            <widget class="QComboBox" name="cmbo_cmpt_sec_job_1">
+            <widget class="QComboBox" name="cmbo_cmpt_worker_primary_job">
              <property name="minimumSize">
               <size>
                <width>250</width>
                <height>0</height>
               </size>
+             </property>
+            </widget>
+           </item>
+           <item row="7" column="0">
+            <widget class="QLabel" name="lbl_cmpt_worker_job_snd_1">
+             <property name="text">
+              <string>次任務1</string>
              </property>
             </widget>
            </item>
            <item row="7" column="1">
-            <widget class="QComboBox" name="cmbo_cmpt_sec_job_2">
+            <widget class="QComboBox" name="cmbo_cmpt_worker_sec_job_1">
              <property name="minimumSize">
               <size>
                <width>250</width>
                <height>0</height>
               </size>
+             </property>
+            </widget>
+           </item>
+           <item row="8" column="0">
+            <widget class="QLabel" name="lbl_cmpt_worker_job_snd_2">
+             <property name="text">
+              <string>次任務2</string>
              </property>
             </widget>
            </item>
            <item row="8" column="1">
-            <widget class="QComboBox" name="cmbo_cmpt_tshirt_sz">
+            <widget class="QComboBox" name="cmbo_cmpt_worker_sec_job_2">
              <property name="minimumSize">
               <size>
                <width>250</width>
                <height>0</height>
               </size>
+             </property>
+            </widget>
+           </item>
+           <item row="9" column="0">
+            <widget class="QLabel" name="lbl_cmpt_worker_tshirt_sz">
+             <property name="text">
+              <string>上衣尺寸</string>
              </property>
             </widget>
            </item>
            <item row="9" column="1">
-            <widget class="QComboBox" name="cmbo_cmpt_coat_sz">
+            <widget class="QComboBox" name="cmbo_cmpt_worker_tshirt_sz">
              <property name="minimumSize">
               <size>
                <width>250</width>
@@ -664,8 +657,15 @@
              </property>
             </widget>
            </item>
-           <item row="4" column="1">
-            <widget class="QLineEdit" name="edit_cmpt_mbr_idcard">
+           <item row="10" column="0">
+            <widget class="QLabel" name="lbl_cmpt_worker_coat_sz">
+             <property name="text">
+              <string>風衣尺寸</string>
+             </property>
+            </widget>
+           </item>
+           <item row="10" column="1">
+            <widget class="QComboBox" name="cmbo_cmpt_worker_coat_sz">
              <property name="minimumSize">
               <size>
                <width>250</width>
@@ -674,8 +674,25 @@
              </property>
             </widget>
            </item>
-           <item row="3" column="1">
-            <widget class="QComboBox" name="cmbo_cmpt_vegetarian">
+           <item row="2" column="0">
+            <widget class="QLabel" name="lbl_cmpt_worker_mem_id">
+             <property name="text">
+              <string>會員編號</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QLineEdit" name="edit_cmpt_worker_name">
+             <property name="minimumSize">
+              <size>
+               <width>250</width>
+               <height>0</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QLineEdit" name="edit_cmpt_worker_mem_id">
              <property name="minimumSize">
               <size>
                <width>250</width>
@@ -686,14 +703,39 @@
            </item>
           </layout>
          </item>
+         <item>
+          <layout class="QGridLayout" name="gridLayout_4">
+           <item row="0" column="1">
+            <widget class="QPushButton" name="btn_worker_info_update">
+             <property name="text">
+              <string>更新目前人員</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="2">
+            <widget class="QPushButton" name="btn_worker_info_delete">
+             <property name="text">
+              <string>刪除工作人員</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0">
+            <widget class="QPushButton" name="btn_worker_info_create">
+             <property name="text">
+              <string>新增工作人員</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
         </layout>
        </widget>
        <widget class="QWidget" name="verticalLayoutWidget_3">
         <property name="geometry">
          <rect>
-          <x>360</x>
+          <x>390</x>
           <y>30</y>
-          <width>261</width>
+          <width>321</width>
           <height>80</height>
          </rect>
         </property>
@@ -701,7 +743,7 @@
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout">
            <property name="spacing">
-            <number>-1</number>
+            <number>7</number>
            </property>
            <item>
             <widget class="QLabel" name="lbl_choose_cmpt_name">
@@ -714,7 +756,7 @@
             <widget class="QComboBox" name="cmbo_selc_competition">
              <property name="minimumSize">
               <size>
-               <width>200</width>
+               <width>250</width>
                <height>0</height>
               </size>
              </property>
@@ -745,9 +787,9 @@
        <widget class="QWidget" name="verticalLayoutWidget_4">
         <property name="geometry">
          <rect>
-          <x>360</x>
-          <y>260</y>
-          <width>310</width>
+          <x>390</x>
+          <y>150</y>
+          <width>321</width>
           <height>80</height>
          </rect>
         </property>
@@ -758,7 +800,7 @@
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_3">
            <property name="spacing">
-            <number>-1</number>
+            <number>7</number>
            </property>
            <item>
             <widget class="QLabel" name="lbl_cmpt_job_list">
@@ -837,7 +879,7 @@
      <x>0</x>
      <y>0</y>
      <width>822</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

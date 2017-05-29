@@ -33,6 +33,7 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
         QtWidgets.QMainWindow.__init__( self )
         UI_MainWindow.__init__( self )
         self.setupUi( self )
+
         self.curr_mbr = mbr.member()
         self.curr_cmpt = cmpt.competition()
 
@@ -207,6 +208,22 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
     ''' ---------------------------------------------
     Competition Tab Widgets action callback
     ----------------------------------------------'''
+    def gui_cmbo_cmpt_meal_init( self ):
+        self.cmbo_cmpt_worker_vegetarian.clear()
+        self.cmbo_cmpt_worker_vegetarian.addItems( cmpt.VEGETARIAN )
+
+    def gui_cmbo_cmpt_job_init( self, cmbo_job_obj, items ):
+        cmbo_job_obj.clear()
+        cmbo_job_obj.addItem( "請選擇工作" )
+        cmbo_job_obj.addItems( items )
+
+    def gui_cmbo_cmpt_cloth_sz_init( self, cmbo_sz_obj, items ):
+        cmbo_sz_obj.clear()
+        cmbo_sz_obj.addItem( "請選擇尺寸" )
+        cmbo_sz_obj.addItems( items[1:] )
+        dflt_idx = items.index( cmpt.DEFAULT_SZ )
+        cmbo_sz_obj.setCurrentIndex( dflt_idx )
+
     def gui_cmbo_selc_competition_init( self ):
         ''' ---------------------------------------------
         No slot is connected to signal and hence disconnect()
@@ -231,7 +248,7 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
         ''' ---------------------------------------------
         Note that we should restrict file encoding as utf8
         ----------------------------------------------'''
-        print("[cmbo_selc_cmpt]: select {} ( {} )".format( i, self.cmbo_selc_competition.currentText() ))
+        print("[cmbo_selc_cmpt]: select {} ( {} )".format( i, self.cmbo_selc_competition.currentText() ) )
         if i != 0:
             cmpt_filename = "{}{}/cmpt.json".format(
                 cmpt.CMPT_RSC_BASE_PATH,
@@ -242,8 +259,41 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
                 self.edit_cmpt_name.setText( "{}".format( cmpt_data['name']))
                 self.edit_cmpt_location.setText( "{}".format( cmpt_data['location']))
                 self.edit_cmpt_date.setText( "{}".format( cmpt_data['date']))
+                joblist = cmpt_data['job']
+                self.curr_cmpt.target_cmpt_set( self.cmbo_selc_competition.currentText() )
 
-                self.curr_cmpt.target_cmpt_set( cmpt_data['name'] )
+                jobname_ls = [name for name, label in joblist]
+
+                self.gui_cmbo_cmpt_job_init_proc( jobname_ls )
+
+                ''' ---------------------------------------------
+                Reconnect Button of job create/delete
+                ----------------------------------------------'''
+                try:
+                    self.btn_cmpt_job_create.clicked.disconnect()
+                    self.btn_cmpt_job_delete.clicked.disconnect()
+                    self.btn_cmpt_job_update.clicked.disconnect()
+                    self.btn_worker_info_create.clicked.disconnect()
+                except TypeError as err:
+                    print( "[btn_cmpt] Failed to disconnect ({})".format(err) )
+
+                self.btn_cmpt_job_create.clicked.connect( self.gui_cmpt_job_create_proc )
+                self.btn_cmpt_job_delete.clicked.connect( self.gui_cmpt_job_delete_proc )
+                self.btn_cmpt_job_update.clicked.connect( self.gui_cmpt_job_update_proc )
+
+                self.gui_cmbo_cmpt_cloth_sz_init( self.cmbo_cmpt_worker_tshirt_sz, cmpt.THIRT_SZ )
+                self.gui_cmbo_cmpt_cloth_sz_init( self.cmbo_cmpt_worker_coat_sz, cmpt.COAT_SZ )
+                self.gui_cmbo_cmpt_meal_init()
+
+                self.btn_worker_info_create.clicked.connect( self.gui_save_curr_cmpt_worker_to_db )
+                #self.btn_mbr_info_update.clicked.connect( self.gui_update_curr_mbr_to_db )
+                #self.btn_mbr_info_delete.clicked.connect( self.gui_delete_curr_mbr )
+
+    def gui_cmbo_cmpt_job_init_proc( self, job_name_list ):
+        self.gui_cmbo_cmpt_job_init( self.cmbo_cmpt_job_list, job_name_list )
+        self.gui_cmbo_cmpt_job_init( self.cmbo_cmpt_worker_primary_job, job_name_list )
+        self.gui_cmbo_cmpt_job_init( self.cmbo_cmpt_worker_sec_job_1, job_name_list )
+        self.gui_cmbo_cmpt_job_init( self.cmbo_cmpt_worker_sec_job_2, job_name_list )
 
     def gui_create_competition( self ):
         msg = QtWidgets.QMessageBox()
@@ -271,7 +321,7 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
 
         try:
             os.makedirs( cmpt.CMPT_RSC_BASE_PATH + cmpt_fldr )
-            data = { "name": cmpt_name, "location": cmpt_locl, "date": cmpt_date }
+            data = { "name": cmpt_name, "location": cmpt_locl, "date": cmpt_date, "jobLabelCnt":0,"job": [] }
 
             with open( cmpt.CMPT_RSC_BASE_PATH + cmpt_fldr + "/cmpt.json", 'w',
                     encoding='utf-8' ) as outfile:
@@ -286,6 +336,131 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
             self.gui_cmbo_selc_competition_init()
         except:
             print("Failed to create competition")
+
+    def gui_cmpt_job_create_proc( self ):
+        filepath = cmpt.CMPT_RSC_BASE_PATH + self.curr_cmpt.cmpt_hndl + "/cmpt.json"
+
+        with open( filepath, "r+", encoding='utf-8' ) as cmpt_info:
+            cmpt_data = json.load( cmpt_info )
+            joblist = cmpt_data['job']
+            jobLblCnt = cmpt_data['jobLabelCnt'] + 1
+
+            text, ok = QtWidgets.QInputDialog.getText(self, '新建工作項目', '輸入工作名稱:')
+            if ok:
+                ''' ---------------------------------------------
+                Sanity check if the same job has been created.
+                ----------------------------------------------'''
+                if ( len(joblist) > 0 and text not in joblist[:][0] ) or ( len(joblist) == 0 ):
+                    ''' ---------------------------------------------
+                    For convenience, the job list is sorted after each
+                    create/update process
+                    ----------------------------------------------'''
+                    joblist.append([text, jobLblCnt])
+                    joblist = sorted( joblist, key = lambda job:job[0] )
+                    cmpt_data['job'] = joblist
+                    cmpt_data['jobLabelCnt'] = jobLblCnt
+                    cmpt_info.seek(0)
+                    json.dump( cmpt_data, cmpt_info, ensure_ascii=False, indent=4, separators=(',', ': ') )
+                    cmpt_info.truncate()
+
+                    jobname_ls = [name for name, label in joblist]
+                    self.gui_cmbo_cmpt_job_init_proc( jobname_ls )
+                else:
+                    print("{} has already exist".format(text))
+                    msg = QtWidgets.QMessageBox()
+                    msg.setWindowTitle("新建工作")
+                    msg.setIcon(QtWidgets.QMessageBox.Information)
+                    msg.setStandardButtons(QtWidgets.QMessageBox.Ok )
+                    msg.setText("{} 已經建立過了!".format( text ) )
+                    retval = msg.exec_()
+
+    def gui_cmpt_job_delete_proc( self ):
+        if self.cmbo_cmpt_job_list.currentIndex() > 0:
+            msg = QtWidgets.QMessageBox()
+            msg.setWindowTitle("賽事設定")
+            msg.setIcon(QtWidgets.QMessageBox.Information)
+            msg.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No )
+            msg.setText("確定要刪除 {} 嗎?".format( self.cmbo_cmpt_job_list.currentText() ) )
+
+            retval = msg.exec_()
+
+            if retval == QtWidgets.QMessageBox.Yes:
+                filepath = cmpt.CMPT_RSC_BASE_PATH + self.curr_cmpt.cmpt_hndl + "/cmpt.json"
+
+                with open( filepath, "r+", encoding='utf-8' ) as cmpt_info:
+                    cmpt_data = json.load( cmpt_info )
+                    joblist = cmpt_data['job']
+                    del joblist[ self.cmbo_cmpt_job_list.currentIndex() - 1 ]
+                    cmpt_data['job'] = joblist
+                    cmpt_info.seek(0)
+                    json.dump( cmpt_data, cmpt_info, ensure_ascii=False, indent=4, separators=(',', ': ') )
+                    cmpt_info.truncate()
+
+                    jobname_ls = [name for name, label in joblist]
+                    self.gui_cmbo_cmpt_job_init_proc( jobname_ls )
+
+    def gui_cmpt_job_update_proc( self ):
+        if self.cmbo_cmpt_job_list.currentIndex() > 0:
+            text, ok = QtWidgets.QInputDialog.getText(self, '更新工作項目', '輸入工作名稱:')
+            if ok:
+                filepath = cmpt.CMPT_RSC_BASE_PATH + self.curr_cmpt.cmpt_hndl + "/cmpt.json"
+                with open( filepath, "r+", encoding='utf-8' ) as cmpt_info:
+                    cmpt_data = json.load( cmpt_info )
+                    joblist = cmpt_data['job']
+                    job_index = self.cmbo_cmpt_job_list.currentIndex() - 1
+                    joblist[ job_index ] = [ text, joblist[ job_index ][1] ]
+
+                    ''' ---------------------------------------------
+                    For convenience, the job list is sorted after each
+                    create/update process
+                    ----------------------------------------------'''
+                    joblist = sorted( joblist, key = lambda job:job[0] )
+
+                    cmpt_data['job'] = joblist
+                    cmpt_info.seek(0)
+                    json.dump( cmpt_data, cmpt_info, ensure_ascii=False, indent=4, separators=(',', ': ') )
+                    cmpt_info.truncate()
+
+                    jobname_ls = [name for name, label in joblist]
+                    self.gui_cmbo_cmpt_job_init_proc( jobname_ls )
+
+    def gui_save_curr_cmpt_worker_to_db( self ):
+        filepath = cmpt.CMPT_RSC_BASE_PATH + self.curr_cmpt.cmpt_hndl + "/cmpt.json"
+
+        pri_jb_cb_idx = self.cmbo_cmpt_worker_primary_job.currentIndex() - 1
+        sec1_jb_cb_idx = self.cmbo_cmpt_worker_sec_job_1.currentIndex() - 1
+        sec2_jb_cb_idx = self.cmbo_cmpt_worker_sec_job_2.currentIndex() - 1
+
+        with open( filepath, "r", encoding='utf-8' ) as cmpt_info:
+            cmpt_data = json.load( cmpt_info )
+            joblist = cmpt_data['job']
+            pri_jb_lbl = joblist[ pri_jb_cb_idx][1] if pri_jb_cb_idx >= 0 else 0
+            sec1_jb_lbl = joblist[ sec1_jb_cb_idx ][1] if sec1_jb_cb_idx >= 0 else 0
+            sec2_jb_lbl = joblist[ sec2_jb_cb_idx ][1] if sec2_jb_cb_idx >= 0 else 0
+
+            #print(pri_jb_lbl)
+            #print(sec1_jb_lbl)
+            #print(sec1_jb_lbl)
+
+        mem_id = 0
+        if self.edit_cmpt_worker_mem_id.text() != '':
+            mem_id = int(self.edit_cmpt_worker_mem_id.text())
+
+        wrkr_info = [ int( self.edit_cmpt_worker_id.text() ),
+                      str( self.edit_cmpt_worker_name.text() ),
+                      str( self.edit_cmpt_worker_phone.text() ),
+                      str( self.edit_cmpt_worker_idcard.text() ),
+                      int( self.cmbo_cmpt_worker_vegetarian.currentIndex() ),
+                      pri_jb_lbl,
+                      sec1_jb_lbl,
+                      sec2_jb_lbl,
+                      int( self.cmbo_cmpt_worker_tshirt_sz.currentIndex() - 1),
+                      int( self.cmbo_cmpt_worker_coat_sz.currentIndex() - 1),
+                      mem_id
+                    ]
+        self.curr_cmpt.worker_info_update(wrkr_info)
+        self.curr_cmpt.save_to_db()
+
 
 '''-----------------------------------------------------------
 Main entry point
@@ -310,4 +485,6 @@ Reference
     http://stackoverflow.com/questions/12468179/unicodedecodeerror-utf8-codec-cant-decode-byte-0x9c
 5. http://stackoverflow.com/questions/19699367/unicodedecodeerror-utf-8-codec-cant-decode-byte
 6. http://www.cnblogs.com/stubborn412/p/3818423.html
+7. QInputDialog tutorial: https://www.tutorialspoint.com/pyqt/pyqt_qinputdialog_widget.htm
+8. Handle filename with UTF8 encoding: https://docs.python.org/3/howto/unicode.html
 -----------------------------------------------------------'''

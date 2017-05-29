@@ -2,12 +2,21 @@
 # -*- coding:utf-8 -*-
 import sqlite3 as sql3
 
+''' ---------------------------------------------
+Constant
+----------------------------------------------'''
 INVALID_ID = 65535
 INVALID_CARD_ID = '##########'
 INVALID_PHONE = '09__-______'
 
 CMPT_RSC_BASE_PATH      = "./Resource/competition/"
 CMPT_DB_FILE_NAME       = "cmpt.db"
+
+VEGETARIAN = [ '葷食', '素食' ]
+
+DEFAULT_SZ = 'M'
+THIRT_SZ   = [ 'None', '8#', '10#', 'XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '5XL' ]
+COAT_SZ    = [ 'None', '8#', '10#', 'XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '5XL' ]
 
 ''' ---------------------------------------------
 TODO:
@@ -24,7 +33,7 @@ class competition:
         '''
         Create database if not exist
         '''
-        self.__id           = worker.get( 'id', INVALID_ID             )       # Unsigned Int
+        self.__wrkrid       = worker.get( 'wrkrid', INVALID_ID             )       # Unsigned Int
         self.__name         = worker.get( 'name', 'Unknown'            )       # String
         self.__phone        = worker.get( 'phone', INVALID_PHONE       )       # String
         self.__idcard       = worker.get( 'idcard', INVALID_CARD_ID    )       # String
@@ -39,13 +48,30 @@ class competition:
         '''
         Use competition name (folder name) as handler. Default NONE
         '''
-        self.cmpt_hndl      = ""
-        self.cmpt_db_path   = ""
+        self.__cmpt_hndl      = ""
+        self.__cmpt_db_path   = ""
+
+    @property
+    def cmpt_hndl(self):
+        return self.__cmpt_hndl
+
+    @property
+    def cmpt_db_path(self):
+        return self.__cmpt_db_path
+
+    @cmpt_hndl.setter
+    def cmpt_hndl(self, cmpt_name):
+        self.__cmpt_hndl = cmpt_name
+
+    @cmpt_db_path.setter
+    def cmpt_db_path(self, path):
+        self.__cmpt_db_path = path
 
 
-    def target_cmpt_set( self, cmpt_name ):
-        self.cmpt_hndl = cmpt_name
-        self.cmpt_db_path = CMPT_RSC_BASE_PATH + cmpt_name + "/" + CMPT_DB_FILE_NAME
+    def target_cmpt_set( self, cmpt_fldr_name ):
+        self.__cmpt_hndl = cmpt_fldr_name
+        self.__cmpt_db_path = CMPT_RSC_BASE_PATH + cmpt_fldr_name + "/" + CMPT_DB_FILE_NAME
+        print(self.__cmpt_hndl)
 
 
     """
@@ -55,10 +81,10 @@ class competition:
       2. After create a new competition.
     """
     def create_tbl( self ):
-        with sql3.connect( self.cmpt_db_path ) as conn:
+        with sql3.connect( self.__cmpt_db_path ) as conn:
             c = conn.cursor()
             c.execute( ''' CREATE TABLE IF NOT EXISTS competition (
-                        id          INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE NOT NULL,
+                        wrkrid      INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE NOT NULL,
                         name        TEXT NOT NULL,
                         phone       TEXT,
                         idcard      TEXT,
@@ -67,22 +93,22 @@ class competition:
                         sec_job_1   TEXT,
                         sec_job_2   TEXT,
                         tshirt_sz   INTEGER,
-                        coat_sz     INTEGER
+                        coat_sz     INTEGER,
                         member_id   INTEGER NOT NULL
                         )''' )
 
     def drop_tbl( self ):
-        with sql3.connect( self.cmpt_db_path ) as conn:
+        with sql3.connect( self.__cmpt_db_path ) as conn:
             c = conn.cursor()
             c.execute( "DROP TABLE competition")
 
     def load_from_db( self, worker_id ):
-        with sql3.connect( self.cmpt_db_path ) as conn:
+        with sql3.connect( self.__cmpt_db_path ) as conn:
             c = conn.cursor()
-            c.execute( "SELECT * FROM competition WHERE id=?", (worker_id, ) )
+            c.execute( "SELECT * FROM competition WHERE wrkrid=?", (worker_id, ) )
             result = c.fetchone()
             if result != None:
-                self.__id          = result[0]
+                self.__wrkrid      = result[0]
                 self.__name        = result[1]
                 self.__phone       = result[2]
                 self.__idcard      = result[3]
@@ -93,15 +119,15 @@ class competition:
                 self.__tshirt_sz   = result[8]
                 self.__coat_sz     = result[9]
                 self.__member_id   = result[10]
-                print("Now current worker ID is {}".format(self.__id))
+                print("Now current worker ID is {}".format(self.__wrkrid))
             else:
                 print("Fetch nothing in DB")
 
     def save_to_db( self ):
 
-        with sql3.connect( self.cmpt_db_path ) as conn:
+        with sql3.connect( self.__cmpt_db_path ) as conn:
             c = conn.cursor()
-            c.execute( '''SELECT MAX(id) FROM competition''' )
+            c.execute( '''SELECT MAX(wrkrid) FROM competition''' )
 
             max_id = c.fetchone()[0]
             if max_id == None:
@@ -111,10 +137,10 @@ class competition:
                 if max_id % 10 == 4:
                     max_id += 1
 
-            self.__id = max_id
+            self.__wrkrid = max_id
             c.execute( '''INSERT INTO competition
                           (
-                          id,
+                          wrkrid,
                           name,
                           phone,
                           idcard,
@@ -127,7 +153,7 @@ class competition:
                           member_id
                           )
                           VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )''',
-                          ( self.__id,
+                          ( self.__wrkrid,
                             self.__name,
                             self.__phone,
                             self.__idcard,
@@ -140,13 +166,31 @@ class competition:
                             self.__member_id ) )
 
     def delete_item( self, del_id ):
-        with sql3.connect( self.cmpt_db_path ) as conn:
+        with sql3.connect( self.__cmpt_db_path ) as conn:
             c = conn.cursor()
-            c.execute( '''DELETE FROM competition WHERE id = ?''', ( del_id, ) )
+            c.execute( '''DELETE FROM competition WHERE wrkrid = ?''', ( del_id, ) )
 
     def retrieve_all_data( self ):
-        with sql3.Connection( self.cmpt_db_path ) as conn:
+        with sql3.Connection( self.__cmpt_db_path ) as conn:
             c = conn.cursor()
             c.execute('''SELECT * FROM competition ''')
             rows = c.fetchall()
             return rows
+
+    def worker_info_update( self, wrkr_info ):
+        [ self.__wrkrid      ,
+          self.__name        ,
+          self.__phone       ,
+          self.__idcard      ,
+          self.__vegetarian  ,
+          self.__primary_job ,
+          self.__sec_job_1   ,
+          self.__sec_job_2   ,
+          self.__tshirt_sz   ,
+          self.__coat_sz     ,
+          self.__member_id ] = wrkr_info
+
+        #print(wrkr_info)
+        #print(self.__name)
+        #print(self.__wrkrid)
+        #print(self.__primary_job)
