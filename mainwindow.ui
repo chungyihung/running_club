@@ -64,7 +64,7 @@
         <widget class="QLabel" name="lbl_mbr_photo">
          <property name="geometry">
           <rect>
-           <x>440</x>
+           <x>460</x>
            <y>30</y>
            <width>261</width>
            <height>291</height>
@@ -92,7 +92,7 @@
            <x>10</x>
            <y>30</y>
            <width>423</width>
-           <height>420</height>
+           <height>446</height>
           </rect>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -203,7 +203,7 @@
             <item row="6" column="1">
              <widget class="QLineEdit" name="edit_mbr_phone1">
               <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                 <horstretch>2</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
@@ -284,14 +284,14 @@
               </property>
              </widget>
             </item>
-            <item row="11" column="0">
+            <item row="13" column="0">
              <widget class="QLabel" name="lbl_mbr_photo_path">
               <property name="text">
                <string>照片位置</string>
               </property>
              </widget>
             </item>
-            <item row="11" column="1">
+            <item row="13" column="1">
              <layout class="QGridLayout" name="gridLayout">
               <item row="0" column="0">
                <widget class="QLineEdit" name="edit_mbr_photo_path">
@@ -316,6 +316,40 @@
              <widget class="QLabel" name="lbl_mbr_id">
               <property name="text">
                <string>會員編號</string>
+              </property>
+             </widget>
+            </item>
+            <item row="11" column="1">
+             <widget class="QComboBox" name="cmbo_mbr_tshirt_sz">
+              <property name="minimumSize">
+               <size>
+                <width>250</width>
+                <height>0</height>
+               </size>
+              </property>
+             </widget>
+            </item>
+            <item row="11" column="0">
+             <widget class="QLabel" name="lbl_mbr_tshirt_sz">
+              <property name="text">
+               <string>上衣尺寸</string>
+              </property>
+             </widget>
+            </item>
+            <item row="12" column="0">
+             <widget class="QLabel" name="lbl_mbr_coat_sz">
+              <property name="text">
+               <string>風衣尺寸</string>
+              </property>
+             </widget>
+            </item>
+            <item row="12" column="1">
+             <widget class="QComboBox" name="cmbo_mbr_coat_sz">
+              <property name="minimumSize">
+               <size>
+                <width>250</width>
+                <height>0</height>
+               </size>
               </property>
              </widget>
             </item>
@@ -853,7 +887,7 @@
        <attribute name="title">
         <string>工作人員清單</string>
        </attribute>
-       <widget class="QTableWidget" name="maraWorkerTbl">
+       <widget class="QTableWidget" name="cmptWorkerTbl">
         <property name="geometry">
          <rect>
           <x>0</x>

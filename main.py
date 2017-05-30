@@ -25,7 +25,7 @@ TAB_MEMBER_VOLUNTEER    = 4
 Tab competition menu enum
 -----------------------------------------------------------'''
 TAB_CMPT_MENU_SETUP     = 0
-TAB_CMPT_MENU_MBR_TBL   = 1
+TAB_CMPT_MENU_WRKR_TBL  = 1
 TAB_CMPT_MENU_STATISTIC = 2
 
 class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
@@ -61,13 +61,26 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
         self.btn_mbr_info_update.clicked.connect( self.gui_update_curr_mbr_to_db )
         self.btn_mbr_info_delete.clicked.connect( self.gui_delete_curr_mbr )
 
+        self.tab_member_menu.currentChanged.connect( self.gui_tab_member_menu_change_hndl )
+
+        #Combo widget init
+        self.gui_cmbo_cloth_sz_init( self.cmbo_mbr_tshirt_sz, cmpt.THIRT_SZ )
+        self.gui_cmbo_cloth_sz_init( self.cmbo_mbr_coat_sz, cmpt.COAT_SZ )
+
         ''' ---------------------------------------------
         Tab of Competition Init
         ----------------------------------------------'''
-        self.tab_member_menu.currentChanged.connect( self.gui_tab_member_menu_change_hndl )
+        self.tab_competition_menu.currentChanged.connect( self.gui_tab_cmpt_menu_change_hndl )
         self.btn_cmpt_create.clicked.connect( self.gui_create_competition )
 
         self.gui_cmbo_selc_competition_init()
+
+    def gui_tab_cmpt_menu_change_hndl( self, curr_idx ):
+        if( TAB_CMPT_MENU_WRKR_TBL == curr_idx ):
+            ''' ---------------------------------------------
+            Table is filled only when TAB_CMPT_MENU_WRKR_TBL is selected
+            ----------------------------------------------'''
+            self.gui_fill_worker_data_table()
 
     def gui_tab_member_menu_change_hndl( self, curr_idx ):
         if( TAB_MEMBER_TABLE == curr_idx ):
@@ -88,7 +101,7 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
 
         HeaderLabel = [
             "編號", "職稱", "姓名", "身分證",  "出生年月日", "地區",
-            "手機", "電話1", "電話2", "地址" ]
+            "手機", "電話1", "電話2", "地址", "T-Shirt尺寸", "風衣尺寸" ]
         self.mbrTable.setColumnCount( len( HeaderLabel ) )
         self.mbrTable.setHorizontalHeaderLabels(HeaderLabel)
         self.mbrTable.verticalHeader().setVisible(False)
@@ -98,6 +111,10 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
             birthstr = "{}.{}.{}".format( row[mbr.DBItem.DB_birthday_Y.value],
                                           row[mbr.DBItem.DB_birthday_M.value],
                                           row[mbr.DBItem.DB_birthday_D.value] )
+
+            mbr_thsirt_sz = cmpt.THIRT_SZ[ row[mbr.DBItem.DB_tshirt_sz.value] ]
+            mbr_coat_sz   = cmpt.COAT_SZ[ row[mbr.DBItem.DB_coat_sz.value] ]
+
             self.mbrTable.insertRow( indx )
             self.mbrTable.setItem( indx, 0, QtWidgets.QTableWidgetItem( str( row[mbr.DBItem.DB_id.value] ) ) )  # index
             self.mbrTable.setItem( indx, 1, QtWidgets.QTableWidgetItem( row[mbr.DBItem.DB_position.value] ) )   # position
@@ -109,6 +126,8 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
             self.mbrTable.setItem( indx, 7, QtWidgets.QTableWidgetItem( row[mbr.DBItem.DB_phone.value] ) )      # phone
             self.mbrTable.setItem( indx, 8, QtWidgets.QTableWidgetItem( row[mbr.DBItem.DB_phone2.value] ) )     # phone2
             self.mbrTable.setItem( indx, 9, QtWidgets.QTableWidgetItem( row[mbr.DBItem.DB_address.value] ) )    # Address
+            self.mbrTable.setItem( indx, 10, QtWidgets.QTableWidgetItem( mbr_thsirt_sz ) )                      # TShirt sz
+            self.mbrTable.setItem( indx, 11, QtWidgets.QTableWidgetItem( mbr_coat_sz ) )                        # coat sz
 
         for col in range( 0, len( HeaderLabel ) ):
             self.mbrTable.horizontalHeader().setSectionResizeMode( col, QtWidgets.QHeaderView.ResizeToContents )
@@ -125,12 +144,12 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
         try:
             query_id = int(self.edit_mbr_id.text())
             self.curr_mbr.load_from_db( query_id )
-            self.gui_fill_line_edit_with_curr_mbr()
+            self.gui_fill_widget_with_curr_mbr()
             self.gui_mbr_info_update_photo()
         except ValueError as err:
             print("[Exception]: {}".format( err ))
 
-    def gui_fill_line_edit_with_curr_mbr( self ):
+    def gui_fill_widget_with_curr_mbr( self ):
         self.edit_mbr_address.setText(      "{}".format( self.curr_mbr.address )            )
         self.edit_mbr_area.setText(         "{}".format( self.curr_mbr.area )               )
         self.edit_mbr_birth_ROC.setText(    "{}".format( self.curr_mbr.birthday_Y )         )
@@ -144,8 +163,10 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
         self.edit_mbr_phone2.setText(       "{}".format( self.curr_mbr.phone2 )             )
         self.edit_mbr_position.setText(     "{}".format( self.curr_mbr.position )           )
         self.edit_mbr_photo_path.setText(   "{}".format( self.curr_mbr.photo )              )
+        self.cmbo_mbr_tshirt_sz.setCurrentIndex( int( self.curr_mbr.tshirt_sz ) )
+        self.cmbo_mbr_coat_sz.setCurrentIndex( int( self.curr_mbr.coat_sz ) )
 
-    def gui_fill_curr_mbr_with_line_edit( self ):
+    def gui_fill_curr_mbr( self ):
         ret = False
         birth_list = self.curr_mbr.birthday_str_to_list( self.edit_mbr_birthday.text() )
 
@@ -171,6 +192,8 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
             self.curr_mbr.phone2        = str( self.edit_mbr_phone2.text()      )
             self.curr_mbr.address       = str( self.edit_mbr_address.text()     )
             self.curr_mbr.photo         = str( self.edit_mbr_photo_path.text()  )
+            self.curr_mbr.tshirt_sz     = int( self.cmbo_mbr_tshirt_sz.currentIndex()   )
+            self.curr_mbr.coat_sz       = int( self.cmbo_mbr_coat_sz.currentIndex()     )
             ret = True
 
         return ret
@@ -194,12 +217,12 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
             self.edit_mbr_photo_path.setText( os.path.relpath( fname[0] ) )
 
     def gui_save_curr_mbr_to_db( self ):
-        if True == self.gui_fill_curr_mbr_with_line_edit():
+        if True == self.gui_fill_curr_mbr():
             self.curr_mbr.save_to_db()
             self.edit_mbr_id.setText( str( self.curr_mbr.mem_id ) )
 
     def gui_update_curr_mbr_to_db( self ):
-        if True == self.gui_fill_curr_mbr_with_line_edit():
+        if True == self.gui_fill_curr_mbr():
             self.curr_mbr.update_to_db()
 
     def gui_delete_curr_mbr( self ):
@@ -217,7 +240,7 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
         cmbo_job_obj.addItem( "請選擇工作" )
         cmbo_job_obj.addItems( items )
 
-    def gui_cmbo_cmpt_cloth_sz_init( self, cmbo_sz_obj, items ):
+    def gui_cmbo_cloth_sz_init( self, cmbo_sz_obj, items ):
         cmbo_sz_obj.clear()
         cmbo_sz_obj.addItem( "請選擇尺寸" )
         cmbo_sz_obj.addItems( items[1:] )
@@ -269,25 +292,33 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
                 ''' ---------------------------------------------
                 Reconnect Button of job create/delete
                 ----------------------------------------------'''
-                try:
-                    self.btn_cmpt_job_create.clicked.disconnect()
-                    self.btn_cmpt_job_delete.clicked.disconnect()
-                    self.btn_cmpt_job_update.clicked.disconnect()
-                    self.btn_worker_info_create.clicked.disconnect()
-                except TypeError as err:
-                    print( "[btn_cmpt] Failed to disconnect ({})".format(err) )
+                self.gui_cmpt_widget_try_disconnect(self.btn_cmpt_job_create.clicked)
+                self.gui_cmpt_widget_try_disconnect(self.btn_cmpt_job_delete.clicked)
+                self.gui_cmpt_widget_try_disconnect(self.btn_cmpt_job_update.clicked)
+                self.gui_cmpt_widget_try_disconnect(self.btn_worker_info_create.clicked)
+                self.gui_cmpt_widget_try_disconnect(self.edit_cmpt_worker_mem_id.returnPressed)
+                self.gui_cmpt_widget_try_disconnect(self.edit_cmpt_worker_id.editingFinished)
 
                 self.btn_cmpt_job_create.clicked.connect( self.gui_cmpt_job_create_proc )
                 self.btn_cmpt_job_delete.clicked.connect( self.gui_cmpt_job_delete_proc )
                 self.btn_cmpt_job_update.clicked.connect( self.gui_cmpt_job_update_proc )
 
-                self.gui_cmbo_cmpt_cloth_sz_init( self.cmbo_cmpt_worker_tshirt_sz, cmpt.THIRT_SZ )
-                self.gui_cmbo_cmpt_cloth_sz_init( self.cmbo_cmpt_worker_coat_sz, cmpt.COAT_SZ )
+                self.gui_cmbo_cloth_sz_init( self.cmbo_cmpt_worker_tshirt_sz, cmpt.THIRT_SZ )
+                self.gui_cmbo_cloth_sz_init( self.cmbo_cmpt_worker_coat_sz, cmpt.COAT_SZ )
                 self.gui_cmbo_cmpt_meal_init()
 
                 self.btn_worker_info_create.clicked.connect( self.gui_save_curr_cmpt_worker_to_db )
                 #self.btn_mbr_info_update.clicked.connect( self.gui_update_curr_mbr_to_db )
                 #self.btn_mbr_info_delete.clicked.connect( self.gui_delete_curr_mbr )
+
+                self.edit_cmpt_worker_mem_id.returnPressed.connect( self.gui_wrkr_read_from_mem_db )
+                self.edit_cmpt_worker_id.editingFinished.connect( self.gui_wrkr_read_from_cmpt_db )
+
+    def gui_cmpt_widget_try_disconnect( self, widget_signal ):
+        try:
+            widget_signal.disconnect()
+        except TypeError as err:
+            print( "[cmpt widget] Failed to disconnect ({})".format(err) )
 
     def gui_cmbo_cmpt_job_init_proc( self, job_name_list ):
         self.gui_cmbo_cmpt_job_init( self.cmbo_cmpt_job_list, job_name_list )
@@ -442,11 +473,19 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
             #print(sec1_jb_lbl)
             #print(sec1_jb_lbl)
 
-        mem_id = 0
-        if self.edit_cmpt_worker_mem_id.text() != '':
+        try:
             mem_id = int(self.edit_cmpt_worker_mem_id.text())
+        except ValueError as err:
+            print( "[Exception]: {}".format( err ) )
+            mem_id = 0
 
-        wrkr_info = [ int( self.edit_cmpt_worker_id.text() ),
+        try:
+            wrkr_id = int( self.edit_cmpt_worker_id.text() )
+        except ValueError as err:
+            print( "[Exception]: {}".format( err ) )
+            wrkr_id = 0
+
+        wrkr_info = [ wrkr_id,
                       str( self.edit_cmpt_worker_name.text() ),
                       str( self.edit_cmpt_worker_phone.text() ),
                       str( self.edit_cmpt_worker_idcard.text() ),
@@ -454,12 +493,126 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
                       pri_jb_lbl,
                       sec1_jb_lbl,
                       sec2_jb_lbl,
-                      int( self.cmbo_cmpt_worker_tshirt_sz.currentIndex() - 1),
-                      int( self.cmbo_cmpt_worker_coat_sz.currentIndex() - 1),
+                      int( self.cmbo_cmpt_worker_tshirt_sz.currentIndex() ),
+                      int( self.cmbo_cmpt_worker_coat_sz.currentIndex() ),
                       mem_id
                     ]
         self.curr_cmpt.worker_info_update(wrkr_info)
         self.curr_cmpt.save_to_db()
+
+    def gui_wrkr_read_from_mem_db( self ):
+        try:
+            query_id = int(self.edit_cmpt_worker_mem_id.text())
+            self.curr_mbr.load_from_db( query_id )
+            self.gui_fill_cmpt_widget_with_curr_mbr()
+        except ValueError as err:
+            print("[Exception]: {}".format( err ))
+
+    def gui_fill_cmpt_widget_with_curr_mbr( self ):
+        self.edit_cmpt_worker_name.setText( self.curr_mbr.name )
+        self.edit_cmpt_worker_phone.setText( self.curr_mbr.cell_phone )
+        self.edit_cmpt_worker_idcard.setText( self.curr_mbr.id_card )
+
+        self.cmbo_cmpt_worker_tshirt_sz.setCurrentIndex( int(self.curr_mbr.tshirt_sz) )
+        self.cmbo_cmpt_worker_coat_sz.setCurrentIndex( int(self.curr_mbr.coat_sz) )
+
+    def gui_wrkr_read_from_cmpt_db( self ):
+        self.gui_fill_cmpt_widget_with_curr_cmpt_wrkr()
+
+    def gui_fill_cmpt_widget_with_curr_cmpt_wrkr( self ):
+        try:
+            query_id = int(self.edit_cmpt_worker_id.text())
+            wrkr_info = self.curr_cmpt.load_from_db( query_id )
+
+            self.edit_cmpt_worker_name.setText( wrkr_info[1] )
+            self.edit_cmpt_worker_phone.setText( wrkr_info[2] )
+            self.edit_cmpt_worker_idcard.setText( wrkr_info[3] )
+
+            self.cmbo_cmpt_worker_vegetarian.setCurrentIndex( int(wrkr_info[4]) )
+            self.cmbo_cmpt_worker_primary_job.setCurrentIndex( int(wrkr_info[5]) )
+            self.cmbo_cmpt_worker_sec_job_1.setCurrentIndex( int(wrkr_info[6]) )
+            self.cmbo_cmpt_worker_sec_job_2.setCurrentIndex( int(wrkr_info[7]) )
+            self.cmbo_cmpt_worker_tshirt_sz.setCurrentIndex( int(wrkr_info[8]) )
+            self.cmbo_cmpt_worker_coat_sz.setCurrentIndex( int(wrkr_info[9]) )
+
+            self.edit_cmpt_worker_mem_id.setText( str(wrkr_info[10]) if wrkr_info[10] >0 else "" )
+        except ValueError as err:
+            print("[Exception]: {}".format( err ))
+
+    ''' ---------------------------------------------
+    Competition Worker Table procedure
+    These procedures will be integrated with member table later.
+    ----------------------------------------------'''
+    def gui_fill_worker_data_table( self ):
+        self.gui_remove_worker_data_table()
+        self.gui_update_worker_data_table()
+
+    def gui_update_worker_data_table( self ):
+        if self.curr_cmpt.cmpt_hndl != "":
+            cmpt_wrkr_data = self.curr_cmpt.retrieve_all_data()
+
+            HeaderLabel = [
+                "編號", "姓名", "電話",  "身分證", "葷素",
+                "主任務", "次任務1", "次任務2", "T-Shirt尺寸", "風衣尺寸", "會員ID"  ]
+            self.cmptWorkerTbl.setColumnCount( len( HeaderLabel ) )
+            self.cmptWorkerTbl.setHorizontalHeaderLabels(HeaderLabel)
+            self.cmptWorkerTbl.verticalHeader().setVisible(False)
+
+            filepath = cmpt.CMPT_RSC_BASE_PATH + self.curr_cmpt.cmpt_hndl + "/cmpt.json"
+            with open( filepath, "r", encoding='utf-8' ) as cmpt_info:
+                cmpt_data = json.load( cmpt_info )
+                joblist = cmpt_data['job']
+                jobname_ls = [name for name, label in joblist]
+                joblabel_ls = [label for name, label in joblist]
+                print(jobname_ls)
+                print(joblabel_ls)
+
+            for row in cmpt_wrkr_data:
+                indx = cmpt_wrkr_data.index( row )
+                self.cmptWorkerTbl.insertRow( indx )
+
+                try:
+                    primary_jb_label = joblabel_ls.index( int(row[5]) )
+                    pri_jb_name = jobname_ls[primary_jb_label]
+                except ValueError as err:
+                    pri_jb_name = ""
+                    print("[CMPT_TABLE]{}".format(err))
+
+                try:
+                    sec_jb1_label = joblabel_ls.index( int(row[6]) )
+                    sec_jb1_name  = jobname_ls[sec_jb1_label]
+                except ValueError as err:
+                    sec_jb1_name = ""
+                    print("[CMPT_TABLE]{}".format(err))
+
+                try:
+                    sec_jb2_label = joblabel_ls.index( int(row[7]) )
+                    sec_jb2_name  = jobname_ls[sec_jb2_label]
+                except ValueError as err:
+                    sec_jb2_name = ""
+                    print("[CMPT_TABLE]{}".format(err))
+
+                wrkr_mem_id_str = str( row[10] ) if row[10] != 0 else "None"
+
+                self.cmptWorkerTbl.setItem( indx, 0, QtWidgets.QTableWidgetItem( str( row[ 0 ] ) ) )            # id
+                self.cmptWorkerTbl.setItem( indx, 1, QtWidgets.QTableWidgetItem( row[1] ) )                     # name
+                self.cmptWorkerTbl.setItem( indx, 2, QtWidgets.QTableWidgetItem( row[2] ) )                     # phone
+                self.cmptWorkerTbl.setItem( indx, 3, QtWidgets.QTableWidgetItem( row[3] ) )                     # idcard
+                self.cmptWorkerTbl.setItem( indx, 4, QtWidgets.QTableWidgetItem( cmpt.VEGETARIAN[row[4]] ) )    # vegetarian
+                self.cmptWorkerTbl.setItem( indx, 5, QtWidgets.QTableWidgetItem( pri_jb_name ) )                # primary job
+                self.cmptWorkerTbl.setItem( indx, 6, QtWidgets.QTableWidgetItem( sec_jb1_name ) )               # secoundary job 1
+                self.cmptWorkerTbl.setItem( indx, 7, QtWidgets.QTableWidgetItem( sec_jb2_name ) )               # secoundary job 2
+                self.cmptWorkerTbl.setItem( indx, 8, QtWidgets.QTableWidgetItem( cmpt.THIRT_SZ[row[8]] ) )      # t-shirt sz
+                self.cmptWorkerTbl.setItem( indx, 9, QtWidgets.QTableWidgetItem( cmpt.COAT_SZ[row[9]] ) )       # coat sz
+                self.cmptWorkerTbl.setItem( indx, 10, QtWidgets.QTableWidgetItem( wrkr_mem_id_str ) )           # mem id
+
+            for col in range( 0, len( HeaderLabel ) ):
+                self.cmptWorkerTbl.horizontalHeader().setSectionResizeMode( col, QtWidgets.QHeaderView.ResizeToContents )
+
+    def gui_remove_worker_data_table( self ):
+        rows = self.cmptWorkerTbl.rowCount()
+        for row in range( 0, rows ):
+            self.cmptWorkerTbl.removeRow( 0 )
 
 
 '''-----------------------------------------------------------

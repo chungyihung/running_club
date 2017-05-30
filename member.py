@@ -10,6 +10,8 @@ INVALID_CARD_ID = '##########'
 INVALID_PHONE = '09__-______'
 
 DEFAULT_PHOTO = "Resource/none_photo.jpg"
+DEFAULT_TSHIRT_SZ = 0
+DEFAULT_COAT_SZ = 0
 
 ''' ---------------------------------------------
 Excel file related
@@ -53,6 +55,8 @@ class DBItem( enm.IntEnum ):
     DB_phone2           = 10
     DB_address          = 11
     DB_photo            = 12
+    DB_tshirt_sz        = 13
+    DB_coat_sz          = 14
     DB_ITEM_CNT         = enm.auto()
 
 ''' ---------------------------------------------
@@ -73,6 +77,8 @@ class member:
         self.__phone        = meminfo.get( 'phone', ''                  )       # String
         self.__phone2       = meminfo.get( 'phone2', ''                 )       # String
         self.__photo        = meminfo.get( 'photo', ''                  )       # String. Recording relative file path
+        self.__tshirt_sz    = meminfo.get( 'tshirt_sz', ''              )       # int
+        self.__coat_sz      = meminfo.get( 'coat_sz', ''                )       # int
 
         '''
         Create database if not exist
@@ -131,6 +137,14 @@ class member:
     def photo(self):
         return self.__photo
 
+    @property
+    def tshirt_sz(self):
+        return self.__tshirt_sz
+
+    @property
+    def coat_sz(self):
+        return self.__coat_sz
+
     @name.setter
     def name(self, name):
         self.__name = name
@@ -183,6 +197,14 @@ class member:
     def photo(self, photo):
         self.__photo = photo
 
+    @tshirt_sz.setter
+    def tshirt_sz(self, tshirt_sz):
+        self.__tshirt_sz = tshirt_sz
+
+    @coat_sz.setter
+    def coat_sz(self, coat_sz):
+        self.__coat_sz = coat_sz
+
     '''
     Member functions
     '''
@@ -207,7 +229,9 @@ class member:
                         phone       TEXT,
                         phone2      TEXT,
                         address     TEXT,
-                        photo       TEXT
+                        photo       TEXT,
+                        tshirt_sz   INTEGER,
+                        coat_sz     INTEGER
                         )''' )
 
     def drop_tbl( self ):
@@ -234,6 +258,8 @@ class member:
                 self.__phone2       = result[10]
                 self.__address      = result[11]
                 self.__photo        = result[12]
+                self.__tshirt_sz    = result[13]
+                self.__coat_sz      = result[14]
                 print("Now current member ID is {}".format(self.__mem_id))
             else:
                 print("Fetch nothing in DB")
@@ -254,8 +280,8 @@ class member:
 
             self.__mem_id = max_id
             c.execute( '''INSERT INTO member
-                          ( id, position, name, idcard, birthday_Y, birthday_M, birthday_D, area, cell_phone, phone, phone2, address, photo )
-                          VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )''',
+                          ( id, position, name, idcard, birthday_Y, birthday_M, birthday_D, area, cell_phone, phone, phone2, address, photo, tshirt_sz, coat_sz )
+                          VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )''',
                           ( self.__mem_id,
                             self.__position,
                             self.__name,
@@ -268,7 +294,10 @@ class member:
                             self.__phone,
                             self.__phone2,
                             self.__address,
-                            self.__photo ) )
+                            self.__photo,
+                            self.__tshirt_sz,
+                            self.__coat_sz
+                            ) )
 
     def update_to_db( self ):
         with sql3.connect( DB_FILE_NAME ) as conn:
@@ -285,7 +314,9 @@ class member:
                       phone=:phone,
                       phone2=:phone2,
                       address=:address,
-                      photo=:photo
+                      photo=:photo,
+                      tshirt_sz=:tshirt_sz,
+                      coat_sz=:coat_sz
                       WHERE id =:id ''',
                       { "position"      : self.__position,
                         "name"          : self.__name,
@@ -299,13 +330,36 @@ class member:
                         "phone2"        : self.__phone2,
                         "address"       : self.__address,
                         "photo"         : self.__photo,
-                        "id"            : self.__mem_id } )
+                        "id"            : self.__mem_id,
+                        "tshirt_sz"     : self.__tshirt_sz,
+                        "coat_sz"       : self.__coat_sz
+                        } )
 
     def delete_item( self, del_id ):
         with sql3.connect( DB_FILE_NAME ) as conn:
             c = conn.cursor()
             c.execute( '''DELETE FROM member WHERE id = ?''', ( del_id, ) )
 
+    def birthday_str_to_list( self, birth_str ):
+        birth_list = [ 0, 1, 1 ]
+        try:
+            birth_list = birth_str.split( EXSL_BIRTH_DELIM )
+        except:
+            print( "Convert birthday string to list failed, using default value" )
+            birth_list = [ 0, 1, 1 ]
+
+        return birth_list
+
+    def retrieve_all_data( self ):
+        with sql3.Connection( DB_FILE_NAME ) as conn:
+            c = conn.cursor()
+            c.execute('''SELECT * FROM member ''')
+            rows = c.fetchall()
+            return rows
+
+    ''' ---------------------------------------------
+    Database <--> Excel file convertion
+    ----------------------------------------------'''
     def cnvt_excel_to_db( self ):
         """
         Load excel file and specific the sheet
@@ -328,8 +382,8 @@ class member:
                     print(int(item[0].value))
                     mbr_birthday_lst = self.birthday_str_to_list( item[ExcelItem.EXSL_BIRTHDAY_STR].value )
                     c.execute( '''INSERT INTO member
-                                  ( id, position, name, idcard, birthday_Y, birthday_M, birthday_D, area, cell_phone, phone, phone2, address, photo )
-                                  VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )''',
+                                  ( id, position, name, idcard, birthday_Y, birthday_M, birthday_D, area, cell_phone, phone, phone2, address, photo, tshirt_sz, coat_sz )
+                                  VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )''',
                                   ( add_id,
                                     self.xstr( item[ExcelItem.EXSL_POSITION].value ),
                                     self.xstr( item[ExcelItem.EXSL_NAME].value ),
@@ -342,7 +396,9 @@ class member:
                                     self.xstr( item[ExcelItem.EXSL_PHONE].value ),
                                     self.xstr( item[ExcelItem.EXSL_PHONE2].value ),
                                     self.xstr( item[ExcelItem.EXSL_ADDRESS].value ),
-                                    DEFAULT_PHOTO) )
+                                    DEFAULT_PHOTO,
+                                    DEFAULT_TSHIRT_SZ,
+                                    DEFAULT_COAT_SZ ) )
                     add_id += 1
                     if add_id % 10 == 4:
                         add_id += 1
@@ -365,20 +421,3 @@ class member:
                 ws.append( append_list )
 
         wb.save( filename = EXCEL_FILE_TS_NAME )
-
-    def birthday_str_to_list( self, birth_str ):
-        birth_list = [ 0, 1, 1 ]
-        try:
-            birth_list = birth_str.split( EXSL_BIRTH_DELIM )
-        except:
-            print( "Convert birthday string to list failed, using default value" )
-            birth_list = [ 0, 1, 1 ]
-
-        return birth_list
-
-    def retrieve_all_data( self ):
-        with sql3.Connection( DB_FILE_NAME ) as conn:
-            c = conn.cursor()
-            c.execute('''SELECT * FROM member ''')
-            rows = c.fetchall()
-            return rows

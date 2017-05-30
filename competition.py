@@ -12,11 +12,11 @@ INVALID_PHONE = '09__-______'
 CMPT_RSC_BASE_PATH      = "./Resource/competition/"
 CMPT_DB_FILE_NAME       = "cmpt.db"
 
-VEGETARIAN = [ '葷食', '素食' ]
+VEGETARIAN = [ '葷', '素' ]
 
 DEFAULT_SZ = 'M'
-THIRT_SZ   = [ 'None', '8#', '10#', 'XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '5XL' ]
-COAT_SZ    = [ 'None', '8#', '10#', 'XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '5XL' ]
+THIRT_SZ   = [ 'N/A', '8#', '10#', 'XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '5XL' ]
+COAT_SZ    = [ 'N/A', '8#', '10#', 'XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '5XL' ]
 
 ''' ---------------------------------------------
 TODO:
@@ -33,7 +33,7 @@ class competition:
         '''
         Create database if not exist
         '''
-        self.__wrkrid       = worker.get( 'wrkrid', INVALID_ID             )       # Unsigned Int
+        self.__wrkrid       = worker.get( 'wrkrid', INVALID_ID         )       # Unsigned Int
         self.__name         = worker.get( 'name', 'Unknown'            )       # String
         self.__phone        = worker.get( 'phone', INVALID_PHONE       )       # String
         self.__idcard       = worker.get( 'idcard', INVALID_CARD_ID    )       # String
@@ -120,6 +120,7 @@ class competition:
                 self.__coat_sz     = result[9]
                 self.__member_id   = result[10]
                 print("Now current worker ID is {}".format(self.__wrkrid))
+                return result
             else:
                 print("Fetch nothing in DB")
 
@@ -190,7 +191,9 @@ class competition:
           self.__coat_sz     ,
           self.__member_id ] = wrkr_info
 
-        #print(wrkr_info)
-        #print(self.__name)
-        #print(self.__wrkrid)
-        #print(self.__primary_job)
+    def retrieve_all_data( self ):
+        with sql3.Connection( self.__cmpt_db_path ) as conn:
+            c = conn.cursor()
+            c.execute('''SELECT * FROM competition ''')
+            rows = c.fetchall()
+            return rows
