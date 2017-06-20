@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 # -*- coding:utf-8 -*-
 import sqlite3 as sql3
+import enum as enm
 
 ''' ---------------------------------------------
 Constant
@@ -17,6 +18,15 @@ VEGETARIAN = [ '葷', '素' ]
 DEFAULT_SZ = 'M'
 THIRT_SZ   = [ 'N/A', '8#', '10#', 'XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '5XL' ]
 COAT_SZ    = [ 'N/A', '8#', '10#', 'XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '5XL' ]
+
+WRKTBL_MODE_NAME = [ '正常模式', '工作群組模式' ]
+''' ---------------------------------------------
+Worker Table items sequence
+----------------------------------------------'''
+class WRKTBL_MODE( enm.IntEnum ):
+    NORMAL                  = 0
+    JOBGROUP                = 1
+    MODE_CNT                = enm.auto()
 
 ''' ---------------------------------------------
 TODO:
@@ -166,6 +176,34 @@ class competition:
                             self.__coat_sz,
                             self.__member_id ) )
 
+    def update_to_db( self ):
+        with sql3.connect( self.__cmpt_db_path ) as conn:
+            c = conn.cursor()
+            c.execute( '''UPDATE competition SET
+                      name=:name,
+                      phone=:phone,
+                      idcard=:idcard,
+                      vegetarian=:vegetarian,
+                      primary_job=:primary_job,
+                      sec_job_1=:sec_job_1,
+                      sec_job_2=:sec_job_2,
+                      tshirt_sz=:tshirt_sz,
+                      coat_sz=:coat_sz,
+                      member_id=:member_id
+                      WHERE wrkrid=:wrkrid''',
+                      { "wrkrid"         : self.__wrkrid,
+                        "name"           : self.__name,
+                        "phone"          : self.__phone,
+                        "idcard"         : self.__idcard,
+                        "vegetarian"     : self.__vegetarian,
+                        "primary_job"    : self.__primary_job,
+                        "sec_job_1"      : self.__sec_job_1,
+                        "sec_job_2"      : self.__sec_job_2,
+                        "tshirt_sz"      : self.__tshirt_sz,
+                        "coat_sz"        : self.__coat_sz,
+                        "member_id"      : self.__member_id
+                        } )
+
     def delete_item( self, del_id ):
         with sql3.connect( self.__cmpt_db_path ) as conn:
             c = conn.cursor()
@@ -178,6 +216,16 @@ class competition:
             rows = c.fetchall()
             return rows
 
+    def get_wrk_lst_in_job( self, joblabel ):
+        with sql3.Connection( self.__cmpt_db_path ) as conn:
+            c = conn.cursor()
+            c.execute('''SELECT name FROM competition where primary_job = ? OR sec_job_1 = ? OR sec_job_2 = ? ''', ( joblabel, joblabel, joblabel) )
+            rows = c.fetchall()
+            return rows
+
+    ''' ---------------------------------------------
+    Use for update current worker information
+    ----------------------------------------------'''
     def worker_info_update( self, wrkr_info ):
         [ self.__wrkrid      ,
           self.__name        ,
@@ -190,10 +238,3 @@ class competition:
           self.__tshirt_sz   ,
           self.__coat_sz     ,
           self.__member_id ] = wrkr_info
-
-    def retrieve_all_data( self ):
-        with sql3.Connection( self.__cmpt_db_path ) as conn:
-            c = conn.cursor()
-            c.execute('''SELECT * FROM competition ''')
-            rows = c.fetchall()
-            return rows
