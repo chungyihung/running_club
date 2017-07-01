@@ -83,6 +83,9 @@ class competition:
         self.__cmpt_db_path = CMPT_RSC_BASE_PATH + cmpt_fldr_name + "/" + CMPT_DB_FILE_NAME
         print(self.__cmpt_hndl)
 
+    def json_fname( self ):
+        filepath = CMPT_RSC_BASE_PATH + self.__cmpt_hndl + "/cmpt.json"
+        return filepath
 
     """
     Create competition database.

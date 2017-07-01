@@ -4,7 +4,8 @@ import os
 import json
 import member as mbr
 import competition as cmpt
-import openpyxl as pyxl
+import etu as myetu
+import ui_util as ui_utl
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 
 '''-----------------------------------------------------------
@@ -22,12 +23,20 @@ TAB_MEMBER_STATISTIC    = 2
 TAB_MEMBER_GROUP        = 3
 TAB_MEMBER_VOLUNTEER    = 4
 
+MEMBER_TBLVU_HEADER = [
+    "編號", "職稱", "姓名", "身分證",  "出生年月日", "地區",
+    "手機", "電話1", "電話2", "地址", "T-Shirt尺寸", "風衣尺寸" ]
+
 '''-----------------------------------------------------------
 Tab competition menu enum
 -----------------------------------------------------------'''
 TAB_CMPT_MENU_SETUP     = 0
 TAB_CMPT_MENU_WRKR_TBL  = 1
 TAB_CMPT_MENU_STATISTIC = 2
+
+CMPT_WRKR_TBLVU_HEADER = [
+    "編號", "姓名", "電話",  "身分證", "葷素",
+    "主任務", "次任務1", "次任務2", "T-Shirt尺寸", "風衣尺寸", "會員ID"  ]
 
 '''-----------------------------------------------------------
 Competition Worker Table Constant
@@ -69,6 +78,8 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
 
         self.tab_member_menu.currentChanged.connect( self.gui_tab_member_menu_change_hndl )
 
+        self.btn_mbr_tbl_save_to_excel.clicked.connect( self.btn_mbr_tbl_save_to_excel_clicked )
+
         #Combo widget init
         self.gui_cmbo_cloth_sz_init( self.cmbo_mbr_tshirt_sz, cmpt.THIRT_SZ )
         self.gui_cmbo_cloth_sz_init( self.cmbo_mbr_coat_sz, cmpt.COAT_SZ )
@@ -82,7 +93,7 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
         self.gui_cmbo_selc_competition_init()
         self.gui_cmbo_wrktbl_mode_init( cmpt.WRKTBL_MODE_NAME )
 
-        self.btn_cmpt_tbl_save_to_excel.clicked.connect( self.cmpt_tbl_save_to_excel )
+        self.btn_cmpt_tbl_save_to_excel.clicked.connect( self.btn_cmpt_tbl_save_to_excel_clicked )
 
     def gui_tab_cmpt_menu_change_hndl( self, curr_idx ):
         if( TAB_CMPT_MENU_WRKR_TBL == curr_idx ):
@@ -108,11 +119,8 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
     def gui_update_data_table( self ):
         mbrdata = self.curr_mbr.retrieve_all_data()
 
-        HeaderLabel = [
-            "編號", "職稱", "姓名", "身分證",  "出生年月日", "地區",
-            "手機", "電話1", "電話2", "地址", "T-Shirt尺寸", "風衣尺寸" ]
-        self.mbrTable.setColumnCount( len( HeaderLabel ) )
-        self.mbrTable.setHorizontalHeaderLabels(HeaderLabel)
+        self.mbrTable.setColumnCount( len( MEMBER_TBLVU_HEADER ) )
+        self.mbrTable.setHorizontalHeaderLabels(MEMBER_TBLVU_HEADER)
         self.mbrTable.verticalHeader().setVisible(False)
 
         for row in mbrdata:
@@ -125,26 +133,31 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
             mbr_coat_sz   = cmpt.COAT_SZ[ row[mbr.DBItem.DB_coat_sz.value] ]
 
             self.mbrTable.insertRow( indx )
-            self.mbrTable.setItem( indx, 0, QtWidgets.QTableWidgetItem( str( row[mbr.DBItem.DB_id.value] ) ) )  # index
-            self.mbrTable.setItem( indx, 1, QtWidgets.QTableWidgetItem( row[mbr.DBItem.DB_position.value] ) )   # position
-            self.mbrTable.setItem( indx, 2, QtWidgets.QTableWidgetItem( row[mbr.DBItem.DB_name.value] ) )       # name
-            self.mbrTable.setItem( indx, 3, QtWidgets.QTableWidgetItem( row[mbr.DBItem.DB_idcard.value] ) )     # idcard number
-            self.mbrTable.setItem( indx, 4, QtWidgets.QTableWidgetItem( str( birthstr ) ) )                     # Birthday
-            self.mbrTable.setItem( indx, 5, QtWidgets.QTableWidgetItem( row[mbr.DBItem.DB_area.value] ) )       # area
-            self.mbrTable.setItem( indx, 6, QtWidgets.QTableWidgetItem( row[mbr.DBItem.DB_cell_phone.value] ) ) # cell phone
-            self.mbrTable.setItem( indx, 7, QtWidgets.QTableWidgetItem( row[mbr.DBItem.DB_phone.value] ) )      # phone
-            self.mbrTable.setItem( indx, 8, QtWidgets.QTableWidgetItem( row[mbr.DBItem.DB_phone2.value] ) )     # phone2
-            self.mbrTable.setItem( indx, 9, QtWidgets.QTableWidgetItem( row[mbr.DBItem.DB_address.value] ) )    # Address
-            self.mbrTable.setItem( indx, 10, QtWidgets.QTableWidgetItem( mbr_thsirt_sz ) )                      # TShirt sz
-            self.mbrTable.setItem( indx, 11, QtWidgets.QTableWidgetItem( mbr_coat_sz ) )                        # coat sz
+            self.mbrTable.setItem( indx, 0, QtWidgets.QTableWidgetItem( "{:04d}".format( row[mbr.DBItem.DB_id.value] ) ) )  # index
+            self.mbrTable.setItem( indx, 1, QtWidgets.QTableWidgetItem( row[mbr.DBItem.DB_position.value] ) )               # position
+            self.mbrTable.setItem( indx, 2, QtWidgets.QTableWidgetItem( row[mbr.DBItem.DB_name.value] ) )                   # name
+            self.mbrTable.setItem( indx, 3, QtWidgets.QTableWidgetItem( row[mbr.DBItem.DB_idcard.value] ) )                 # idcard number
+            self.mbrTable.setItem( indx, 4, QtWidgets.QTableWidgetItem( str( birthstr ) ) )                                 # Birthday
+            self.mbrTable.setItem( indx, 5, QtWidgets.QTableWidgetItem( row[mbr.DBItem.DB_area.value] ) )                   # area
+            self.mbrTable.setItem( indx, 6, QtWidgets.QTableWidgetItem( row[mbr.DBItem.DB_cell_phone.value] ) )             # cell phone
+            self.mbrTable.setItem( indx, 7, QtWidgets.QTableWidgetItem( row[mbr.DBItem.DB_phone.value] ) )                  # phone
+            self.mbrTable.setItem( indx, 8, QtWidgets.QTableWidgetItem( row[mbr.DBItem.DB_phone2.value] ) )                 # phone2
+            self.mbrTable.setItem( indx, 9, QtWidgets.QTableWidgetItem( row[mbr.DBItem.DB_address.value] ) )                # Address
+            self.mbrTable.setItem( indx, 10, QtWidgets.QTableWidgetItem( mbr_thsirt_sz ) )                                  # TShirt sz
+            self.mbrTable.setItem( indx, 11, QtWidgets.QTableWidgetItem( mbr_coat_sz ) )                                    # coat sz
 
-        for col in range( 0, len( HeaderLabel ) ):
+        for col in range( 0, len( MEMBER_TBLVU_HEADER ) ):
             self.mbrTable.horizontalHeader().setSectionResizeMode( col, QtWidgets.QHeaderView.ResizeToContents )
 
     def gui_remove_data_table( self ):
         rows = self.mbrTable.rowCount()
         for row in range( 0, rows ):
             self.mbrTable.removeRow( 0 )
+
+    def btn_mbr_tbl_save_to_excel_clicked( self ):
+        sheet_title = "會員名單"
+        filepath =  sheet_title + ".xlsx"
+        myetu.ETU_cmpt_tbl_save_to_excel( self.mbrTable, sheet_title, filepath )
 
     ''' ---------------------------------------------
     Edit member widgets procedures
@@ -235,12 +248,9 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
             self.curr_mbr.update_to_db()
 
     def gui_delete_curr_mbr( self ):
-        msg = QtWidgets.QMessageBox()
-        msg.setWindowTitle("刪除會員")
-        msg.setIcon(QtWidgets.QMessageBox.Information)
-        msg.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No )
-        msg.setText("確定要刪除會員 {} 嗎?".format( self.edit_cmpt_worker_id.text() ) )
-        retval = msg.exec_()
+        retval = ui_utl.popup_msg_box("刪除會員",
+                                      "確定要刪除會員 {} 嗎?".format(self.edit_mbr_id.text()),
+                                      ui_utl.PU_MSG_YESNO )
 
         if retval == QtWidgets.QMessageBox.Yes:
             self.curr_mbr.delete_item( int( self.edit_mbr_id.text() ) )
@@ -360,11 +370,6 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
         self.gui_cmbo_cmpt_job_init( self.cmbo_cmpt_worker_sec_job_2, job_name_list )
 
     def gui_create_competition( self ):
-        msg = QtWidgets.QMessageBox()
-        msg.setWindowTitle("賽事建立")
-        msg.setIcon(QtWidgets.QMessageBox.Information)
-        msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
-
         cmpt_name = str( self.edit_cmpt_name.text() )
         cmpt_locl = str( self.edit_cmpt_location.text() )
         cmpt_date = str( self.edit_cmpt_date.text() )
@@ -380,9 +385,9 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
         for name in os.listdir( cmpt.CMPT_RSC_BASE_PATH ):
             print("{} {}".format(name, cmpt_fldr))
             if name == cmpt_fldr:
-                msg.setText("{} 已經建立過囉!".format(cmpt_fldr))
-                retval = msg.exec_()
-
+                ui_utl.popup_msg_box("賽事建立",
+                                    "{} 已經建立過囉!".format(cmpt_fldr),
+                                    ui_utl.PU_MSG_INFO )
         try:
             os.makedirs( cmpt.CMPT_RSC_BASE_PATH + cmpt_fldr )
             data = { "name": cmpt_name, "location": cmpt_locl, "date": cmpt_date, "jobLabelCnt":0,"job": [] }
@@ -394,17 +399,16 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
             self.curr_cmpt.target_cmpt_set( cmpt_fldr )
             self.curr_cmpt.create_tbl()
 
-            msg.setText("{} 完成建立!".format(cmpt_fldr))
-            retval = msg.exec_()
+            ui_utl.popup_msg_box("賽事建立",
+                                "{} 完成建立!".format(cmpt_fldr),
+                                ui_utl.PU_MSG_INFO )
 
             self.gui_cmbo_selc_competition_init()
         except:
             print("Failed to create competition")
 
     def gui_cmpt_job_create_proc( self ):
-        filepath = cmpt.CMPT_RSC_BASE_PATH + self.curr_cmpt.cmpt_hndl + "/cmpt.json"
-
-        with open( filepath, "r+", encoding='utf-8' ) as cmpt_info:
+        with open( self.curr_cmpt.json_fname(), "r+", encoding='utf-8' ) as cmpt_info:
             cmpt_data = json.load( cmpt_info )
             joblist = cmpt_data['job']
             jobLblCnt = cmpt_data['jobLabelCnt'] + 1
@@ -431,27 +435,18 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
                     self.gui_cmbo_cmpt_job_init_proc( jobname_ls )
                 else:
                     print("{} has already exist".format(text))
-                    msg = QtWidgets.QMessageBox()
-                    msg.setWindowTitle("新建工作")
-                    msg.setIcon(QtWidgets.QMessageBox.Information)
-                    msg.setStandardButtons(QtWidgets.QMessageBox.Ok )
-                    msg.setText("{} 已經建立過了!".format( text ) )
-                    retval = msg.exec_()
+                    ui_utl.popup_msg_box("賽事建立",
+                                        "{} 已經建立過了!".format( text ),
+                                        ui_utl.PU_MSG_INFO )
 
     def gui_cmpt_job_delete_proc( self ):
         if self.cmbo_cmpt_job_list.currentIndex() > 0:
-            msg = QtWidgets.QMessageBox()
-            msg.setWindowTitle("賽事設定")
-            msg.setIcon(QtWidgets.QMessageBox.Information)
-            msg.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No )
-            msg.setText("確定要刪除 {} 嗎?".format( self.cmbo_cmpt_job_list.currentText() ) )
-
-            retval = msg.exec_()
+            retval = ui_utl.popup_msg_box("賽事設定",
+                                          "確定要刪除 {} 嗎?".format( self.cmbo_cmpt_job_list.currentText() ),
+                                          ui_utl.PU_MSG_YESNO )
 
             if retval == QtWidgets.QMessageBox.Yes:
-                filepath = cmpt.CMPT_RSC_BASE_PATH + self.curr_cmpt.cmpt_hndl + "/cmpt.json"
-
-                with open( filepath, "r+", encoding='utf-8' ) as cmpt_info:
+                with open( self.curr_cmpt.json_fname(), "r+", encoding='utf-8' ) as cmpt_info:
                     cmpt_data = json.load( cmpt_info )
                     joblist = cmpt_data['job']
                     del joblist[ self.cmbo_cmpt_job_list.currentIndex() - 1 ]
@@ -467,8 +462,7 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
         if self.cmbo_cmpt_job_list.currentIndex() > 0:
             text, ok = QtWidgets.QInputDialog.getText(self, '更新工作項目', '輸入工作名稱:')
             if ok:
-                filepath = cmpt.CMPT_RSC_BASE_PATH + self.curr_cmpt.cmpt_hndl + "/cmpt.json"
-                with open( filepath, "r+", encoding='utf-8' ) as cmpt_info:
+                with open( self.curr_cmpt.json_fname(), "r+", encoding='utf-8' ) as cmpt_info:
                     cmpt_data = json.load( cmpt_info )
                     joblist = cmpt_data['job']
                     job_index = self.cmbo_cmpt_job_list.currentIndex() - 1
@@ -489,13 +483,11 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
                     self.gui_cmbo_cmpt_job_init_proc( jobname_ls )
 
     def gui_save_curr_cmpt_worker_to_db( self ):
-        filepath = cmpt.CMPT_RSC_BASE_PATH + self.curr_cmpt.cmpt_hndl + "/cmpt.json"
-
         pri_jb_cb_idx = self.cmbo_cmpt_worker_primary_job.currentIndex() - 1
         sec1_jb_cb_idx = self.cmbo_cmpt_worker_sec_job_1.currentIndex() - 1
         sec2_jb_cb_idx = self.cmbo_cmpt_worker_sec_job_2.currentIndex() - 1
 
-        with open( filepath, "r", encoding='utf-8' ) as cmpt_info:
+        with open( self.curr_cmpt.json_fname(), "r", encoding='utf-8' ) as cmpt_info:
             cmpt_data = json.load( cmpt_info )
             joblist = cmpt_data['job']
             pri_jb_lbl = joblist[ pri_jb_cb_idx][1] if pri_jb_cb_idx >= 0 else 0
@@ -528,15 +520,16 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
                     ]
         self.curr_cmpt.worker_info_update(wrkr_info)
         self.curr_cmpt.save_to_db()
+        ui_utl.popup_msg_box("新增工作人員",
+                            "{} 新增完成!".format( str(self.edit_cmpt_worker_name.text() ) ),
+                            ui_utl.PU_MSG_INFO )
 
     def gui_update_curr_cmpt_worker_to_db( self ):
-        filepath = cmpt.CMPT_RSC_BASE_PATH + self.curr_cmpt.cmpt_hndl + "/cmpt.json"
-
         pri_jb_cb_idx = self.cmbo_cmpt_worker_primary_job.currentIndex() - 1
         sec1_jb_cb_idx = self.cmbo_cmpt_worker_sec_job_1.currentIndex() - 1
         sec2_jb_cb_idx = self.cmbo_cmpt_worker_sec_job_2.currentIndex() - 1
 
-        with open( filepath, "r", encoding='utf-8' ) as cmpt_info:
+        with open( self.curr_cmpt.json_fname(), "r", encoding='utf-8' ) as cmpt_info:
             cmpt_data = json.load( cmpt_info )
             joblist = cmpt_data['job']
             pri_jb_lbl = joblist[ pri_jb_cb_idx][1] if pri_jb_cb_idx >= 0 else 0
@@ -571,12 +564,9 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
         self.curr_cmpt.update_to_db()
 
     def gui_delete_curr_cmpt_worker_to_db( self ):
-        msg = QtWidgets.QMessageBox()
-        msg.setWindowTitle("刪除工作人員")
-        msg.setIcon(QtWidgets.QMessageBox.Information)
-        msg.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No )
-        msg.setText("確定要刪除工作人員 {} 嗎?".format( self.edit_cmpt_worker_id.text() ) )
-        retval = msg.exec_()
+        retval = ui_utl.popup_msg_box("刪除工作人員",
+                                      "確定要刪除工作人員 {} 嗎?".format( self.edit_cmpt_worker_id.text() ),
+                                      ui_utl.PU_MSG_YESNO )
 
         if retval == QtWidgets.QMessageBox.Yes:
             self.curr_cmpt.delete_item( int( self.edit_cmpt_worker_id.text() ) )
@@ -642,11 +632,8 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
             cmpt_wrkr_data = self.curr_cmpt.retrieve_all_data()
             jobname_ls, joblabel_ls = self.cmpt_job_lists_get()
 
-            HeaderLabel = [
-                "編號", "姓名", "電話",  "身分證", "葷素",
-                "主任務", "次任務1", "次任務2", "T-Shirt尺寸", "風衣尺寸", "會員ID"  ]
-            self.cmptWorkerTbl.setColumnCount( len( HeaderLabel ) )
-            self.cmptWorkerTbl.setHorizontalHeaderLabels(HeaderLabel)
+            self.cmptWorkerTbl.setColumnCount( len( CMPT_WRKR_TBLVU_HEADER ) )
+            self.cmptWorkerTbl.setHorizontalHeaderLabels(CMPT_WRKR_TBLVU_HEADER)
             self.cmptWorkerTbl.verticalHeader().setVisible(False)
 
             ''' ---------------------------------------------
@@ -695,7 +682,7 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
                 self.cmptWorkerTbl.setItem( indx, 9, QtWidgets.QTableWidgetItem( cmpt.COAT_SZ[row[9]] ) )       # coat sz
                 self.cmptWorkerTbl.setItem( indx, 10, QtWidgets.QTableWidgetItem( wrkr_mem_id_str ) )           # mem id
 
-            for col in range( 0, len( HeaderLabel ) ):
+            for col in range( 0, len( CMPT_WRKR_TBLVU_HEADER ) ):
                 self.cmptWorkerTbl.horizontalHeader().setSectionResizeMode( col, QtWidgets.QHeaderView.ResizeToContents )
 
     def gui_update_wrktbl_job_grp_mode( self ):
@@ -741,8 +728,7 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
             self.cmptWorkerTbl.removeRow( 0 )
 
     def cmpt_job_lists_get( self ):
-        filepath = cmpt.CMPT_RSC_BASE_PATH + self.curr_cmpt.cmpt_hndl + "/cmpt.json"
-        with open( filepath, "r+", encoding='utf-8' ) as cmpt_info:
+        with open( self.curr_cmpt.json_fname(), "r+", encoding='utf-8' ) as cmpt_info:
             cmpt_data = json.load( cmpt_info )
             joblist = cmpt_data['job']
             cmpt_data['job'] = joblist
@@ -750,37 +736,10 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
             joblabel_ls = [label for name, label in joblist]
             return jobname_ls, joblabel_ls
 
-    def cmpt_tbl_save_to_excel( self ):
-        wb = pyxl.Workbook()
-        for sheet in wb.worksheets:
-            wb.remove_sheet( sheet )
+    def btn_cmpt_tbl_save_to_excel_clicked( self ):
         sheet_title = str( self.cmbo_wrktbl_mode.currentText() )
-        ws = wb.create_sheet( title = sheet_title )
-
-        ''' ---------------------------------------------
-        Get table header string
-        ----------------------------------------------'''
-        header_ls = []
-        header_idx = 0
-        while True:
-            qtwitem = self.cmptWorkerTbl.horizontalHeaderItem(header_idx)
-            if qtwitem == None:
-                break
-            else:
-                header_ls.append(qtwitem.text())
-                header_idx += 1
-
-        ws.append(header_ls)
-
-        for row in range( 0, self.cmptWorkerTbl.rowCount() ):
-            append_list = []
-            for col in range( 0 , self.cmptWorkerTbl.columnCount() ):
-                qtblitem = self.cmptWorkerTbl.item(row, col)
-                append_list.append( qtblitem.text() if qtblitem != None else "" )
-            ws.append( append_list )
-
         filepath = cmpt.CMPT_RSC_BASE_PATH + self.curr_cmpt.cmpt_hndl + "/" + sheet_title + ".xlsx"
-        wb.save( filename = filepath )
+        myetu.ETU_cmpt_tbl_save_to_excel( self.cmptWorkerTbl, sheet_title, filepath )
 
 '''-----------------------------------------------------------
 Main entry point
