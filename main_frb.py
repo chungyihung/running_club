@@ -1,9 +1,8 @@
 #!/usr/local/bin/python3
 # -*- coding:utf-8 -*-
-import os
-import json
 import frb_member as frb
 import competition as cmpt
+import frb_competition as frb_cmpt
 import etu as myetu
 import ui_util as ui_utl
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
@@ -50,7 +49,7 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
         self.setupUi( self )
 
         self.frb = frb.frb_member()
-        self.curr_cmpt = cmpt.competition()
+        self.frbc = frb_cmpt.frb_competition()
 
         self.gui_mbr_info_update_photo()
 
@@ -80,17 +79,18 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
         self.btn_mbr_tbl_save_to_excel.clicked.connect( self.btn_mbr_tbl_save_to_excel_clicked )
 
         #Combo widget init
-        self.gui_cmbo_cloth_sz_init( self.cmbo_mbr_tshirt_sz, cmpt.THIRT_SZ )
-        self.gui_cmbo_cloth_sz_init( self.cmbo_mbr_coat_sz, cmpt.COAT_SZ )
+        self.gui_cmbo_cloth_sz_init( self.cmbo_mbr_tshirt_sz, frb_cmpt.THIRT_SZ )
+        self.gui_cmbo_cloth_sz_init( self.cmbo_mbr_coat_sz, frb_cmpt.COAT_SZ )
 
         ''' ---------------------------------------------
         Tab of Competition Init
         ----------------------------------------------'''
         self.tab_competition_menu.currentChanged.connect( self.gui_tab_cmpt_menu_change_hndl )
         self.btn_cmpt_create.clicked.connect( self.gui_create_competition )
+        self.btn_cmpt_update.clicked.connect( self.gui_update_competition )
 
         self.gui_cmbo_selc_competition_init()
-        self.gui_cmbo_wrktbl_mode_init( cmpt.WRKTBL_MODE_NAME )
+        self.gui_cmbo_wrktbl_mode_init( frb_cmpt.WRKTBL_MODE_NAME )
 
         self.btn_cmpt_tbl_save_to_excel.clicked.connect( self.btn_cmpt_tbl_save_to_excel_clicked )
 
@@ -132,8 +132,8 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
             if mem != None:
                 birthstr = "{}.{}.{}".format( mem[frb.BirthY], mem[frb.BirthM], mem[frb.BirthD] )
 
-                mbr_thsirt_sz = cmpt.THIRT_SZ[ mem["tshirt_sz"] ]
-                mbr_coat_sz   = cmpt.COAT_SZ[ mem["coat_sz"] ]
+                mbr_thsirt_sz = frb_cmpt.THIRT_SZ[ mem["tshirt_sz"] ]
+                mbr_coat_sz   = frb_cmpt.COAT_SZ[ mem["coat_sz"] ]
 
                 self.mbrTable.insertRow( indx )
                 self.mbrTable.setItem( indx, 0, QtWidgets.QTableWidgetItem( "{:04d}".format( mem[frb.MemberID] ) ) )  # index
@@ -263,7 +263,7 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
     ----------------------------------------------'''
     def gui_cmbo_cmpt_meal_init( self ):
         self.cmbo_cmpt_worker_vegetarian.clear()
-        self.cmbo_cmpt_worker_vegetarian.addItems( cmpt.VEGETARIAN )
+        self.cmbo_cmpt_worker_vegetarian.addItems( frb_cmpt.VEGETARIAN )
 
     def gui_cmbo_cmpt_job_init( self, cmbo_job_obj, items ):
         cmbo_job_obj.clear()
@@ -274,13 +274,13 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
         cmbo_sz_obj.clear()
         cmbo_sz_obj.addItem( "請選擇尺寸" )
         cmbo_sz_obj.addItems( items[1:] )
-        dflt_idx = items.index( cmpt.DEFAULT_SZ )
+        dflt_idx = items.index( frb_cmpt.DEFAULT_SZ )
         cmbo_sz_obj.setCurrentIndex( dflt_idx )
 
     def gui_cmbo_wrktbl_mode_init( self, items ):
         self.cmbo_wrktbl_mode.clear()
         self.cmbo_wrktbl_mode.addItems( items )
-        self.cmbo_wrktbl_mode.setCurrentIndex( cmpt.WRKTBL_MODE.NORMAL  )
+        self.cmbo_wrktbl_mode.setCurrentIndex( frb_cmpt.WRKTBL_MODE.NORMAL  )
 
     def gui_cmbo_selc_competition_init( self ):
         ''' ---------------------------------------------
@@ -294,9 +294,10 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
 
         self.cmbo_selc_competition.clear()
         self.cmbo_selc_competition.addItem( "請選擇賽事" )
-        for name in os.listdir( cmpt.CMPT_RSC_BASE_PATH ):
-            if os.path.isdir( "{}{}".format( cmpt.CMPT_RSC_BASE_PATH, name ) ):
-                self.cmbo_selc_competition.addItem( name )
+
+        cmptlist = self.frbc.get_all_competition()
+        for name, details in cmptlist.items():
+            self.cmbo_selc_competition.addItem( name )
 
         self.cmbo_selc_competition.currentIndexChanged.connect(
             self.gui_cmbo_selc_competition_chng
@@ -308,48 +309,48 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
         ''' ---------------------------------------------
         Note that we should restrict file encoding as utf8
         ----------------------------------------------'''
-        print("[cmbo_selc_cmpt]: select {} ( {} )".format( i, self.cmbo_selc_competition.currentText() ) )
+        cmpt_slct = self.cmbo_selc_competition.currentText()
+        print("[cmbo_selc_cmpt]: select {} ( {} )".format( i, cmpt_slct ) )
         if i != 0:
-            cmpt_filename = "{}{}/cmpt.json".format(
-                cmpt.CMPT_RSC_BASE_PATH,
-                self.cmbo_selc_competition.currentText() )
-            with open(cmpt_filename, "r", encoding='utf-8' ) as cmpt_info:
-                cmpt_data = json.load( cmpt_info )
-                print(cmpt_data)
-                self.edit_cmpt_name.setText( "{}".format( cmpt_data['name']))
-                self.edit_cmpt_location.setText( "{}".format( cmpt_data['location']))
-                self.edit_cmpt_date.setText( "{}".format( cmpt_data['date']))
-                joblist = cmpt_data['job']
-                self.curr_cmpt.target_cmpt_set( self.cmbo_selc_competition.currentText() )
+            ''' ---------------------------------------------
+            Fill up the competition info
+            ----------------------------------------------'''
+            cmptinfo = self.frbc.get_competition(cmpt_slct)
+            self.edit_cmpt_name.setText( "{}".format( cmptinfo['name']))
+            self.edit_cmpt_location.setText( "{}".format( cmptinfo['location']))
+            self.edit_cmpt_date.setText( "{}".format( cmptinfo['date']))
 
-                jobname_ls = [name for name, label in joblist]
+            ''' ---------------------------------------------
+            joblist is dictionary type
+            ----------------------------------------------'''
+            joblist = self.frbc.get_jb_list()
+            jobname_ls = [name for name, label in joblist.items()]
+            self.gui_cmbo_cmpt_job_init_proc( jobname_ls )
 
-                self.gui_cmbo_cmpt_job_init_proc( jobname_ls )
+            ''' ---------------------------------------------
+            Update each component by reconnecting button of job create/delete
+            ----------------------------------------------'''
+            self.gui_cmpt_widget_try_disconnect(self.btn_cmpt_job_create.clicked)
+            self.gui_cmpt_widget_try_disconnect(self.btn_cmpt_job_delete.clicked)
+            self.gui_cmpt_widget_try_disconnect(self.btn_cmpt_job_update.clicked)
+            self.gui_cmpt_widget_try_disconnect(self.btn_worker_info_create.clicked)
+            self.gui_cmpt_widget_try_disconnect(self.edit_cmpt_worker_mem_id.returnPressed)
+            self.gui_cmpt_widget_try_disconnect(self.edit_cmpt_worker_id.editingFinished)
 
-                ''' ---------------------------------------------
-                Reconnect Button of job create/delete
-                ----------------------------------------------'''
-                self.gui_cmpt_widget_try_disconnect(self.btn_cmpt_job_create.clicked)
-                self.gui_cmpt_widget_try_disconnect(self.btn_cmpt_job_delete.clicked)
-                self.gui_cmpt_widget_try_disconnect(self.btn_cmpt_job_update.clicked)
-                self.gui_cmpt_widget_try_disconnect(self.btn_worker_info_create.clicked)
-                self.gui_cmpt_widget_try_disconnect(self.edit_cmpt_worker_mem_id.returnPressed)
-                self.gui_cmpt_widget_try_disconnect(self.edit_cmpt_worker_id.editingFinished)
+            self.btn_cmpt_job_create.clicked.connect( self.gui_cmpt_job_create_proc )
+            self.btn_cmpt_job_delete.clicked.connect( self.gui_cmpt_job_delete_proc )
+            self.btn_cmpt_job_update.clicked.connect( self.gui_cmpt_job_update_proc )
 
-                self.btn_cmpt_job_create.clicked.connect( self.gui_cmpt_job_create_proc )
-                self.btn_cmpt_job_delete.clicked.connect( self.gui_cmpt_job_delete_proc )
-                self.btn_cmpt_job_update.clicked.connect( self.gui_cmpt_job_update_proc )
+            self.gui_cmbo_cloth_sz_init( self.cmbo_cmpt_worker_tshirt_sz, frb_cmpt.THIRT_SZ )
+            self.gui_cmbo_cloth_sz_init( self.cmbo_cmpt_worker_coat_sz, frb_cmpt.COAT_SZ )
+            self.gui_cmbo_cmpt_meal_init()
 
-                self.gui_cmbo_cloth_sz_init( self.cmbo_cmpt_worker_tshirt_sz, cmpt.THIRT_SZ )
-                self.gui_cmbo_cloth_sz_init( self.cmbo_cmpt_worker_coat_sz, cmpt.COAT_SZ )
-                self.gui_cmbo_cmpt_meal_init()
+            self.btn_worker_info_create.clicked.connect( self.gui_save_curr_cmpt_worker_to_db )
+            self.btn_worker_info_update.clicked.connect( self.gui_update_curr_cmpt_worker_to_db )
+            self.btn_worker_info_delete.clicked.connect( self.gui_delete_curr_cmpt_worker_to_db )
 
-                self.btn_worker_info_create.clicked.connect( self.gui_save_curr_cmpt_worker_to_db )
-                self.btn_worker_info_update.clicked.connect( self.gui_update_curr_cmpt_worker_to_db )
-                self.btn_worker_info_delete.clicked.connect( self.gui_delete_curr_cmpt_worker_to_db )
-
-                self.edit_cmpt_worker_mem_id.returnPressed.connect( self.gui_wrkr_read_from_mem_db )
-                self.edit_cmpt_worker_id.editingFinished.connect( self.gui_wrkr_read_from_cmpt_db )
+            self.edit_cmpt_worker_mem_id.returnPressed.connect( self.gui_wrkr_read_from_mem_db )
+            self.edit_cmpt_worker_id.returnPressed.connect( self.gui_wrkr_read_from_cmpt_db )
 
     def gui_cmpt_widget_try_disconnect( self, widget_signal ):
         try:
@@ -358,186 +359,194 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
             print( "[cmpt widget] Failed to disconnect ({})".format(err) )
 
     def gui_cmbo_wrktbl_mode_chng( self ):
-        if cmpt.WRKTBL_MODE.NORMAL == self.cmbo_wrktbl_mode.currentIndex():
+        if frb_cmpt.WRKTBL_MODE.NORMAL == self.cmbo_wrktbl_mode.currentIndex():
             self.gui_remove_worker_data_table()
             self.gui_update_worker_data_table()
-        elif cmpt.WRKTBL_MODE.JOBGROUP == self.cmbo_wrktbl_mode.currentIndex():
+        elif frb_cmpt.WRKTBL_MODE.JOBGROUP == self.cmbo_wrktbl_mode.currentIndex():
             print("List worker table in job group")
             self.gui_remove_worker_data_table()
             self.gui_update_wrktbl_job_grp_mode()
 
+
+    ''' ---------------------------------------------
+    gui_cmbo_cmpt_job_init_proc
+      * Initial all objects related to job.
+      * job_name_list - array of each name
+    ----------------------------------------------'''
     def gui_cmbo_cmpt_job_init_proc( self, job_name_list ):
         self.gui_cmbo_cmpt_job_init( self.cmbo_cmpt_job_list, job_name_list )
         self.gui_cmbo_cmpt_job_init( self.cmbo_cmpt_worker_primary_job, job_name_list )
         self.gui_cmbo_cmpt_job_init( self.cmbo_cmpt_worker_sec_job_1, job_name_list )
         self.gui_cmbo_cmpt_job_init( self.cmbo_cmpt_worker_sec_job_2, job_name_list )
 
+    ''' ---------------------------------------------
+    gui_create_competition
+      - create new competition
+    ----------------------------------------------'''
     def gui_create_competition( self ):
-        cmpt_name = str( self.edit_cmpt_name.text() )
-        cmpt_locl = str( self.edit_cmpt_location.text() )
-        cmpt_date = str( self.edit_cmpt_date.text() )
+        cmpt_data = {}
+        has_created = False
+        cmpt_data["name"] = str( self.edit_cmpt_name.text() )
+        cmpt_data["location"] = str( self.edit_cmpt_location.text() )
+        cmpt_data["date"] = str( self.edit_cmpt_date.text() )
 
         ''' ---------------------------------------------
         Folder name = [date]_[name]
         ----------------------------------------------'''
-        cmpt_fldr = cmpt_date + "_" + cmpt_name
+        new_cmpt = cmpt_data["date"] + "_" + cmpt_data["name"]
+        cmptlist = self.frbc.get_all_competition()
 
         ''' ---------------------------------------------
         Sanity check if the competition folder has been created
         ----------------------------------------------'''
-        for name in os.listdir( cmpt.CMPT_RSC_BASE_PATH ):
-            print("{} {}".format(name, cmpt_fldr))
-            if name == cmpt_fldr:
-                ui_utl.popup_msg_box("賽事建立",
-                                    "{} 已經建立過囉!".format(cmpt_fldr),
-                                    ui_utl.PU_MSG_INFO )
-        try:
-            os.makedirs( cmpt.CMPT_RSC_BASE_PATH + cmpt_fldr )
-            data = { "name": cmpt_name, "location": cmpt_locl, "date": cmpt_date, "jobLabelCnt":0,"job": [] }
+        for name, details in cmptlist.items():
+            print("{} {}".format(name, new_cmpt))
+            if name == new_cmpt:
+                ui_utl.popup_msg_box("賽事建立", "{} 已經建立過囉!".format(new_cmpt), ui_utl.PU_MSG_INFO )
+                has_created = True
 
-            with open( cmpt.CMPT_RSC_BASE_PATH + cmpt_fldr + "/cmpt.json", 'w',
-                    encoding='utf-8' ) as outfile:
-                json.dump(data, outfile, ensure_ascii=False, indent=4, separators=(',', ': ') )
+        if has_created == False:
+            try:
+                self.frbc.set_competition( cmpt_data )
+                ui_utl.popup_msg_box("賽事建立", "{} 完成建立!".format(new_cmpt), ui_utl.PU_MSG_INFO )
+                self.gui_cmbo_selc_competition_init()
+            except:
+                print("Failed to create competition")
 
-            self.curr_cmpt.target_cmpt_set( cmpt_fldr )
-            self.curr_cmpt.create_tbl()
+    ''' ---------------------------------------------
+    gui_update_competition
+      - update competition content
+    TODO: Add mechanism to allow user update the name and date
+          by renaming all job list and worker dict.
+    ----------------------------------------------'''
+    def gui_update_competition( self ):
+        ''' ---------------------------------------------
+        Target name is the selected competition combo content
+        ----------------------------------------------'''
+        cmpt_slct = self.cmbo_selc_competition.currentText()
 
-            ui_utl.popup_msg_box("賽事建立",
-                                "{} 完成建立!".format(cmpt_fldr),
-                                ui_utl.PU_MSG_INFO )
+        cmpt_data = {}
+        tmpstr = cmpt_slct.split( "-" )
+        cmpt_data["name"] = tmpstr[0]
+        cmpt_data["location"] = str( self.edit_cmpt_location.text() )
+        cmpt_data["date"] = tmpstr[1]
+        self.frbc.upt_competition( cmpt_data )
 
-            self.gui_cmbo_selc_competition_init()
-        except:
-            print("Failed to create competition")
-
+    ''' ---------------------------------------------
+    gui_cmpt_job_create_proc
+      - add new job item into job list
+      - joblabel == 0: Unlabel object
+      - job label start from 1
+      - everytime add job, search the minimum unused number in job labe list
+    ----------------------------------------------'''
     def gui_cmpt_job_create_proc( self ):
-        with open( self.curr_cmpt.json_fname(), "r+", encoding='utf-8' ) as cmpt_info:
-            cmpt_data = json.load( cmpt_info )
-            joblist = cmpt_data['job']
-            jobLblCnt = cmpt_data['jobLabelCnt'] + 1
-
-            text, ok = QtWidgets.QInputDialog.getText(self, '新建工作項目', '輸入工作名稱:')
-            if ok:
-                ''' ---------------------------------------------
-                Sanity check if the same job has been created.
-                ----------------------------------------------'''
-                if ( len(joblist) > 0 and text not in joblist[:][0] ) or ( len(joblist) == 0 ):
-                    ''' ---------------------------------------------
-                    For convenience, the job list is sorted after each
-                    create/update process
-                    ----------------------------------------------'''
-                    joblist.append([text, jobLblCnt])
-                    joblist = sorted( joblist, key = lambda job:job[0] )
-                    cmpt_data['job'] = joblist
-                    cmpt_data['jobLabelCnt'] = jobLblCnt
-                    cmpt_info.seek(0)
-                    json.dump( cmpt_data, cmpt_info, ensure_ascii=False, indent=4, separators=(',', ': ') )
-                    cmpt_info.truncate()
-
-                    jobname_ls = [name for name, label in joblist]
-                    self.gui_cmbo_cmpt_job_init_proc( jobname_ls )
+        text, ok = QtWidgets.QInputDialog.getText(self, '新建工作項目', '輸入工作名稱:')
+        if ok:
+            jbname, jblabel = self.frbc.get_jb_list( separate=True )
+            ''' ---------------------------------------------
+            Find the minimum unused label
+            ----------------------------------------------'''
+            jblbl_srt = sorted( jblabel )
+            new_jb_lbl = 1
+            for n in jblbl_srt:
+                if n != new_jb_lbl:
+                    break
                 else:
-                    print("{} has already exist".format(text))
-                    ui_utl.popup_msg_box("賽事建立",
-                                        "{} 已經建立過了!".format( text ),
-                                        ui_utl.PU_MSG_INFO )
+                    new_jb_lbl = new_jb_lbl + 1
 
+            ''' ---------------------------------------------
+            Sanity check if target job is already in job list
+            ----------------------------------------------'''
+            if text not in jbname:
+                ''' ---------------------------------------------
+                Currently we only store label in job list dict
+                ----------------------------------------------'''
+                self.frbc.add_jb( text, new_jb_lbl )
+                jbname.append(text)
+                self.gui_cmbo_cmpt_job_init_proc( sorted(jbname) )
+            else:
+                print("{} has already exist".format(text))
+                ui_utl.popup_msg_box("工作建立", "{} 已經建立過了!".format( text ), ui_utl.PU_MSG_INFO )
+
+
+    ''' ---------------------------------------------
+    gui_cmpt_job_delete_proc
+    ----------------------------------------------'''
     def gui_cmpt_job_delete_proc( self ):
         if self.cmbo_cmpt_job_list.currentIndex() > 0:
-            retval = ui_utl.popup_msg_box("賽事設定",
+            retval = ui_utl.popup_msg_box("工作設定",
                                           "確定要刪除 {} 嗎?".format( self.cmbo_cmpt_job_list.currentText() ),
                                           ui_utl.PU_MSG_YESNO )
-
             if retval == QtWidgets.QMessageBox.Yes:
-                with open( self.curr_cmpt.json_fname(), "r+", encoding='utf-8' ) as cmpt_info:
-                    cmpt_data = json.load( cmpt_info )
-                    joblist = cmpt_data['job']
-                    del joblist[ self.cmbo_cmpt_job_list.currentIndex() - 1 ]
-                    cmpt_data['job'] = joblist
-                    cmpt_info.seek(0)
-                    json.dump( cmpt_data, cmpt_info, ensure_ascii=False, indent=4, separators=(',', ': ') )
-                    cmpt_info.truncate()
+                self.frbc.delete_jb( self.cmbo_cmpt_job_list.currentText() )
+                jbname, jblabel = self.frbc.get_jb_list( separate=True )
+                self.gui_cmbo_cmpt_job_init_proc( jbname )
 
-                    jobname_ls = [name for name, label in joblist]
-                    self.gui_cmbo_cmpt_job_init_proc( jobname_ls )
-
+    ''' ---------------------------------------------
+    gui_cmpt_job_update_proc
+    ----------------------------------------------'''
     def gui_cmpt_job_update_proc( self ):
         if self.cmbo_cmpt_job_list.currentIndex() > 0:
             text, ok = QtWidgets.QInputDialog.getText(self, '更新工作項目', '輸入工作名稱:')
             if ok:
-                with open( self.curr_cmpt.json_fname(), "r+", encoding='utf-8' ) as cmpt_info:
-                    cmpt_data = json.load( cmpt_info )
-                    joblist = cmpt_data['job']
-                    job_index = self.cmbo_cmpt_job_list.currentIndex() - 1
-                    joblist[ job_index ] = [ text, joblist[ job_index ][1] ]
+                jbname, jblabel = self.frbc.get_jb_list( separate=True )
+                job_index = self.cmbo_cmpt_job_list.currentIndex() - 1
+                self.frbc.rename_jb( jbname[job_index], text )
+                jbname[job_index] = text
+                self.gui_cmbo_cmpt_job_init_proc( sorted(jbname) )
 
-                    ''' ---------------------------------------------
-                    For convenience, the job list is sorted after each
-                    create/update process
-                    ----------------------------------------------'''
-                    joblist = sorted( joblist, key = lambda job:job[0] )
-
-                    cmpt_data['job'] = joblist
-                    cmpt_info.seek(0)
-                    json.dump( cmpt_data, cmpt_info, ensure_ascii=False, indent=4, separators=(',', ': ') )
-                    cmpt_info.truncate()
-
-                    jobname_ls = [name for name, label in joblist]
-                    self.gui_cmbo_cmpt_job_init_proc( jobname_ls )
-
+    ''' ---------------------------------------------
+    gui_save_curr_cmpt_worker_to_db
+      - Save worker information into db according to current component contents.
+    ----------------------------------------------'''
     def gui_save_curr_cmpt_worker_to_db( self ):
-        pri_jb_cb_idx = self.cmbo_cmpt_worker_primary_job.currentIndex() - 1
-        sec1_jb_cb_idx = self.cmbo_cmpt_worker_sec_job_1.currentIndex() - 1
-        sec2_jb_cb_idx = self.cmbo_cmpt_worker_sec_job_2.currentIndex() - 1
+        pri_jb_cb_idx = self.cmbo_cmpt_worker_primary_job.currentIndex()
+        sec1_jb_cb_idx = self.cmbo_cmpt_worker_sec_job_1.currentIndex()
+        sec2_jb_cb_idx = self.cmbo_cmpt_worker_sec_job_2.currentIndex()
 
-        with open( self.curr_cmpt.json_fname(), "r", encoding='utf-8' ) as cmpt_info:
-            cmpt_data = json.load( cmpt_info )
-            joblist = cmpt_data['job']
-            pri_jb_lbl = joblist[ pri_jb_cb_idx][1] if pri_jb_cb_idx >= 0 else 0
-            sec1_jb_lbl = joblist[ sec1_jb_cb_idx ][1] if sec1_jb_cb_idx >= 0 else 0
-            sec2_jb_lbl = joblist[ sec2_jb_cb_idx ][1] if sec2_jb_cb_idx >= 0 else 0
+        jbdict = self.frbc.get_jb_list()
+        pri_jb_lbl = jbdict[self.cmbo_cmpt_worker_primary_job.currentText()] if pri_jb_cb_idx > 0 else 0
+        sec1_jb_lbl = jbdict[self.cmbo_cmpt_worker_sec_job_1.currentText()] if sec1_jb_cb_idx > 0 else 0
+        sec2_jb_lbl = jbdict[self.cmbo_cmpt_worker_sec_job_2.currentText()] if sec2_jb_cb_idx > 0 else 0
+        print("pri_jb_lbl = {}".format(pri_jb_lbl))
 
+        worker = self.frbc.init_worker()
+
+        ''' ---------------------------------------------
+        If the worker is also a valid club member, record it.
+        ----------------------------------------------'''
         try:
             mem_id = int(self.edit_cmpt_worker_mem_id.text())
         except ValueError as err:
             print( "[Exception]: {}".format( err ) )
             mem_id = 0
 
-        try:
-            wrkr_id = int( self.edit_cmpt_worker_id.text() )
-        except ValueError as err:
-            print( "[Exception]: {}".format( err ) )
-            wrkr_id = 0
+        worker[frb_cmpt.Name]      = str( self.edit_cmpt_worker_name.text() )
+        worker[frb_cmpt.Phone]     = str( self.edit_cmpt_worker_phone.text() )
+        worker[frb_cmpt.IDCard]    = str( self.edit_cmpt_worker_idcard.text() )
+        worker[frb_cmpt.Vegetarian]= int( self.cmbo_cmpt_worker_vegetarian.currentIndex() )
+        worker[frb_cmpt.Primary_JB]= pri_jb_lbl
+        worker[frb_cmpt.SEC_JB1]   = sec1_jb_lbl
+        worker[frb_cmpt.SEC_JB2]   = sec2_jb_lbl
+        worker[frb_cmpt.TShirt_SZ] = int( self.cmbo_cmpt_worker_tshirt_sz.currentIndex() )
+        worker[frb_cmpt.Coat_SZ]   = int( self.cmbo_cmpt_worker_coat_sz.currentIndex() )
+        worker[frb_cmpt.MemberID]  = mem_id
 
-        wrkr_info = [ wrkr_id,
-                      str( self.edit_cmpt_worker_name.text() ),
-                      str( self.edit_cmpt_worker_phone.text() ),
-                      str( self.edit_cmpt_worker_idcard.text() ),
-                      int( self.cmbo_cmpt_worker_vegetarian.currentIndex() ),
-                      pri_jb_lbl,
-                      sec1_jb_lbl,
-                      sec2_jb_lbl,
-                      int( self.cmbo_cmpt_worker_tshirt_sz.currentIndex() ),
-                      int( self.cmbo_cmpt_worker_coat_sz.currentIndex() ),
-                      mem_id
-                    ]
-        self.curr_cmpt.worker_info_update(wrkr_info)
-        self.curr_cmpt.save_to_db()
+        self.frbc.add_worker( worker )
+
         ui_utl.popup_msg_box("新增工作人員",
                             "{} 新增完成!".format( str(self.edit_cmpt_worker_name.text() ) ),
                             ui_utl.PU_MSG_INFO )
 
     def gui_update_curr_cmpt_worker_to_db( self ):
-        pri_jb_cb_idx = self.cmbo_cmpt_worker_primary_job.currentIndex() - 1
-        sec1_jb_cb_idx = self.cmbo_cmpt_worker_sec_job_1.currentIndex() - 1
-        sec2_jb_cb_idx = self.cmbo_cmpt_worker_sec_job_2.currentIndex() - 1
+        pri_jb_cb_idx = self.cmbo_cmpt_worker_primary_job.currentIndex()
+        sec1_jb_cb_idx = self.cmbo_cmpt_worker_sec_job_1.currentIndex()
+        sec2_jb_cb_idx = self.cmbo_cmpt_worker_sec_job_2.currentIndex()
 
-        with open( self.curr_cmpt.json_fname(), "r", encoding='utf-8' ) as cmpt_info:
-            cmpt_data = json.load( cmpt_info )
-            joblist = cmpt_data['job']
-            pri_jb_lbl = joblist[ pri_jb_cb_idx][1] if pri_jb_cb_idx >= 0 else 0
-            sec1_jb_lbl = joblist[ sec1_jb_cb_idx ][1] if sec1_jb_cb_idx >= 0 else 0
-            sec2_jb_lbl = joblist[ sec2_jb_cb_idx ][1] if sec2_jb_cb_idx >= 0 else 0
+        jbdict = self.frbc.get_jb_list()
+        pri_jb_lbl = jbdict[self.cmbo_cmpt_worker_primary_job.currentText()] if pri_jb_cb_idx > 0 else 0
+        sec1_jb_lbl = jbdict[self.cmbo_cmpt_worker_sec_job_1.currentText()] if sec1_jb_cb_idx > 0 else 0
+        sec2_jb_lbl = jbdict[self.cmbo_cmpt_worker_sec_job_2.currentText()] if sec2_jb_cb_idx > 0 else 0
 
         try:
             mem_id = int(self.edit_cmpt_worker_mem_id.text())
@@ -551,20 +560,21 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
             print( "[Exception]: {}".format( err ) )
             wrkr_id = 0
 
-        wrkr_info = [ wrkr_id,
-                      str( self.edit_cmpt_worker_name.text() ),
-                      str( self.edit_cmpt_worker_phone.text() ),
-                      str( self.edit_cmpt_worker_idcard.text() ),
-                      int( self.cmbo_cmpt_worker_vegetarian.currentIndex() ),
-                      pri_jb_lbl,
-                      sec1_jb_lbl,
-                      sec2_jb_lbl,
-                      int( self.cmbo_cmpt_worker_tshirt_sz.currentIndex() ),
-                      int( self.cmbo_cmpt_worker_coat_sz.currentIndex() ),
-                      mem_id
-                    ]
-        self.curr_cmpt.worker_info_update(wrkr_info)
-        self.curr_cmpt.update_to_db()
+        if wrkr_id != 0:
+            worker = self.frbc.init_worker()
+            worker[frb_cmpt.WorkerID]  = wrkr_id
+            worker[frb_cmpt.Name]      = str( self.edit_cmpt_worker_name.text() )
+            worker[frb_cmpt.Phone]     = str( self.edit_cmpt_worker_phone.text() )
+            worker[frb_cmpt.IDCard]    = str( self.edit_cmpt_worker_idcard.text() )
+            worker[frb_cmpt.Vegetarian]= int( self.cmbo_cmpt_worker_vegetarian.currentIndex() )
+            worker[frb_cmpt.Primary_JB]= pri_jb_lbl
+            worker[frb_cmpt.SEC_JB1]   = sec1_jb_lbl
+            worker[frb_cmpt.SEC_JB2]   = sec2_jb_lbl
+            worker[frb_cmpt.TShirt_SZ] = int( self.cmbo_cmpt_worker_tshirt_sz.currentIndex() )
+            worker[frb_cmpt.Coat_SZ]   = int( self.cmbo_cmpt_worker_coat_sz.currentIndex() )
+            worker[frb_cmpt.MemberID]  = mem_id
+
+            self.frbc.update_worker( wrkr_id, worker )
 
     def gui_delete_curr_cmpt_worker_to_db( self ):
         retval = ui_utl.popup_msg_box("刪除工作人員",
@@ -572,7 +582,7 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
                                       ui_utl.PU_MSG_YESNO )
 
         if retval == QtWidgets.QMessageBox.Yes:
-            self.curr_cmpt.delete_item( int( self.edit_cmpt_worker_id.text() ) )
+            self.frbc.rm_worker( int( self.edit_cmpt_worker_id.text() ) )
 
     def gui_wrkr_read_from_mem_db( self ):
         try:
@@ -590,26 +600,30 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
         self.cmbo_cmpt_worker_tshirt_sz.setCurrentIndex( int(member[frb.TShirt_SZ]) )
         self.cmbo_cmpt_worker_coat_sz.setCurrentIndex( int(member[frb.Coat_SZ]) )
 
+    ''' ---------------------------------------------
+    Call after worker ID finished added
+    ----------------------------------------------'''
     def gui_wrkr_read_from_cmpt_db( self ):
         self.gui_fill_cmpt_widget_with_curr_cmpt_wrkr()
 
     def gui_fill_cmpt_widget_with_curr_cmpt_wrkr( self ):
         try:
             query_id = int(self.edit_cmpt_worker_id.text())
-            wrkr_info = self.curr_cmpt.load_from_db( query_id )
+            wrkr_info = self.frbc.get_worker( query_id )
+            print(wrkr_info)
             if wrkr_info != None:
-                self.edit_cmpt_worker_name.setText( wrkr_info[1] )
-                self.edit_cmpt_worker_phone.setText( wrkr_info[2] )
-                self.edit_cmpt_worker_idcard.setText( wrkr_info[3] )
+                self.edit_cmpt_worker_name.setText( wrkr_info[frb_cmpt.Name] )
+                self.edit_cmpt_worker_phone.setText( wrkr_info[frb_cmpt.Phone] )
+                self.edit_cmpt_worker_idcard.setText( wrkr_info[frb_cmpt.IDCard] )
 
-                self.cmbo_cmpt_worker_vegetarian.setCurrentIndex( int(wrkr_info[4]) )
-                self.cmbo_cmpt_worker_primary_job.setCurrentIndex( int(wrkr_info[5]) )
-                self.cmbo_cmpt_worker_sec_job_1.setCurrentIndex( int(wrkr_info[6]) )
-                self.cmbo_cmpt_worker_sec_job_2.setCurrentIndex( int(wrkr_info[7]) )
-                self.cmbo_cmpt_worker_tshirt_sz.setCurrentIndex( int(wrkr_info[8]) )
-                self.cmbo_cmpt_worker_coat_sz.setCurrentIndex( int(wrkr_info[9]) )
+                self.cmbo_cmpt_worker_vegetarian.setCurrentIndex( int(wrkr_info[frb_cmpt.Vegetarian]) )
+                self.cmbo_cmpt_worker_primary_job.setCurrentIndex( int(wrkr_info[frb_cmpt.Primary_JB]) )
+                self.cmbo_cmpt_worker_sec_job_1.setCurrentIndex( int(wrkr_info[frb_cmpt.SEC_JB1]) )
+                self.cmbo_cmpt_worker_sec_job_2.setCurrentIndex( int(wrkr_info[frb_cmpt.SEC_JB2]) )
+                self.cmbo_cmpt_worker_tshirt_sz.setCurrentIndex( int(wrkr_info[frb_cmpt.TShirt_SZ]) )
+                self.cmbo_cmpt_worker_coat_sz.setCurrentIndex( int(wrkr_info[frb_cmpt.Coat_SZ]) )
 
-                self.edit_cmpt_worker_mem_id.setText( str(wrkr_info[10]) if wrkr_info[10] > 0 else "" )
+                self.edit_cmpt_worker_mem_id.setText( str(wrkr_info[frb_cmpt.MemberID]) if wrkr_info[frb_cmpt.MemberID] > 0 else "" )
 
         except ValueError as err:
             print("[Exception]: {}".format( err ))
@@ -628,22 +642,26 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
             self.gui_update_wrktbl_job_grp_mode()
 
     def gui_update_worker_data_table( self ):
-        if self.curr_cmpt.cmpt_hndl != "":
+        if self.frbc.curr_cmpt_hndl != "":
             ''' ---------------------------------------------
-            Get all worker in database and jobs in json file
+            Get all worker in database and jobs from Firebase
             ----------------------------------------------'''
-            cmpt_wrkr_data = self.curr_cmpt.retrieve_all_data()
-            jobname_ls, joblabel_ls = self.cmpt_job_lists_get()
+            cmpt_wrkr_data = self.frbc.get_all_worker()
+            jobname_ls, joblabel_ls = self.frbc.get_jb_list( separate = True)
 
+            ''' ---------------------------------------------
+            Initialize Table
+            ----------------------------------------------'''
             self.cmptWorkerTbl.setColumnCount( len( CMPT_WRKR_TBLVU_HEADER ) )
             self.cmptWorkerTbl.setHorizontalHeaderLabels(CMPT_WRKR_TBLVU_HEADER)
             self.cmptWorkerTbl.verticalHeader().setVisible(False)
 
             ''' ---------------------------------------------
             Loop all data in Competition Database
+            Note that cmpt_wrkr_data is in dict type from Firebase
             ----------------------------------------------'''
-            for row in cmpt_wrkr_data:
-                indx = cmpt_wrkr_data.index( row )
+            indx = 0
+            for wrkr_id, worker in cmpt_wrkr_data.items():
                 self.cmptWorkerTbl.insertRow( indx )
 
                 ''' ---------------------------------------------
@@ -651,97 +669,87 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
                 for getting corresponding job name
                 ----------------------------------------------'''
                 try:
-                    primary_jb_label = joblabel_ls.index( int(row[5]) )
+                    primary_jb_label = joblabel_ls.index( int(worker[frb_cmpt.Primary_JB]) )
                     pri_jb_name = jobname_ls[primary_jb_label]
                 except ValueError as err:
                     pri_jb_name = ""
                     print("[CMPT_TABLE]{}".format(err))
 
                 try:
-                    sec_jb1_label = joblabel_ls.index( int(row[6]) )
+                    sec_jb1_label = joblabel_ls.index( int(worker[frb_cmpt.SEC_JB1]) )
                     sec_jb1_name  = jobname_ls[sec_jb1_label]
                 except ValueError as err:
                     sec_jb1_name = ""
                     print("[CMPT_TABLE]{}".format(err))
 
                 try:
-                    sec_jb2_label = joblabel_ls.index( int(row[7]) )
+                    sec_jb2_label = joblabel_ls.index( int(worker[frb_cmpt.SEC_JB2]) )
                     sec_jb2_name  = jobname_ls[sec_jb2_label]
                 except ValueError as err:
                     sec_jb2_name = ""
                     print("[CMPT_TABLE]{}".format(err))
 
-                wrkr_mem_id_str = str( row[10] ) if row[10] != 0 else "None"
+                wrkr_mem_id_str = str( worker[frb_cmpt.MemberID] ) if worker[frb_cmpt.MemberID] != 0 else "None"
 
-                self.cmptWorkerTbl.setItem( indx, 0, QtWidgets.QTableWidgetItem( str( row[ 0 ] ) ) )            # id
-                self.cmptWorkerTbl.setItem( indx, 1, QtWidgets.QTableWidgetItem( row[1] ) )                     # name
-                self.cmptWorkerTbl.setItem( indx, 2, QtWidgets.QTableWidgetItem( row[2] ) )                     # phone
-                self.cmptWorkerTbl.setItem( indx, 3, QtWidgets.QTableWidgetItem( row[3] ) )                     # idcard
-                self.cmptWorkerTbl.setItem( indx, 4, QtWidgets.QTableWidgetItem( cmpt.VEGETARIAN[row[4]] ) )    # vegetarian
-                self.cmptWorkerTbl.setItem( indx, 5, QtWidgets.QTableWidgetItem( pri_jb_name ) )                # primary job
-                self.cmptWorkerTbl.setItem( indx, 6, QtWidgets.QTableWidgetItem( sec_jb1_name ) )               # secoundary job 1
-                self.cmptWorkerTbl.setItem( indx, 7, QtWidgets.QTableWidgetItem( sec_jb2_name ) )               # secoundary job 2
-                self.cmptWorkerTbl.setItem( indx, 8, QtWidgets.QTableWidgetItem( cmpt.THIRT_SZ[row[8]] ) )      # t-shirt sz
-                self.cmptWorkerTbl.setItem( indx, 9, QtWidgets.QTableWidgetItem( cmpt.COAT_SZ[row[9]] ) )       # coat sz
+                self.cmptWorkerTbl.setItem( indx, 0, QtWidgets.QTableWidgetItem( str( worker[frb_cmpt.WorkerID] ) ) )                   # id
+                self.cmptWorkerTbl.setItem( indx, 1, QtWidgets.QTableWidgetItem( worker[frb_cmpt.Name] ) )                              # name
+                self.cmptWorkerTbl.setItem( indx, 2, QtWidgets.QTableWidgetItem( worker[frb_cmpt.Phone] ) )                             # phone
+                self.cmptWorkerTbl.setItem( indx, 3, QtWidgets.QTableWidgetItem( worker[frb_cmpt.IDCard] ) )                            # idcard
+                self.cmptWorkerTbl.setItem( indx, 4, QtWidgets.QTableWidgetItem( frb_cmpt.VEGETARIAN[worker[frb_cmpt.Vegetarian]] ) )   # vegetarian
+                self.cmptWorkerTbl.setItem( indx, 5, QtWidgets.QTableWidgetItem( pri_jb_name ) )                                        # primary job
+                self.cmptWorkerTbl.setItem( indx, 6, QtWidgets.QTableWidgetItem( sec_jb1_name ) )                                       # secoundary job 1
+                self.cmptWorkerTbl.setItem( indx, 7, QtWidgets.QTableWidgetItem( sec_jb2_name ) )                                       # secoundary job 2
+                self.cmptWorkerTbl.setItem( indx, 8, QtWidgets.QTableWidgetItem( frb_cmpt.THIRT_SZ[worker[frb_cmpt.TShirt_SZ]] ) )      # t-shirt sz
+                self.cmptWorkerTbl.setItem( indx, 9, QtWidgets.QTableWidgetItem( frb_cmpt.COAT_SZ[worker[frb_cmpt.Coat_SZ]] ) )         # coat sz
                 self.cmptWorkerTbl.setItem( indx, 10, QtWidgets.QTableWidgetItem( wrkr_mem_id_str ) )           # mem id
+                indx = indx + 1
 
             for col in range( 0, len( CMPT_WRKR_TBLVU_HEADER ) ):
                 self.cmptWorkerTbl.horizontalHeader().setSectionResizeMode( col, QtWidgets.QHeaderView.ResizeToContents )
 
     def gui_update_wrktbl_job_grp_mode( self ):
-        ''' ---------------------------------------------
-        Set up header
-        ----------------------------------------------'''
-        HeaderLabel = [ "任務"] + [str(num) for num in range(1, N_COL_WRKRTBL_JOB_GRP + 1) ]
-        self.cmptWorkerTbl.setColumnCount( len( HeaderLabel ) )
-        self.cmptWorkerTbl.setHorizontalHeaderLabels(HeaderLabel)
-        self.cmptWorkerTbl.verticalHeader().setVisible(False)
+        if self.frbc.curr_cmpt_hndl != "":
+            ''' ---------------------------------------------
+            Set up header
+            ----------------------------------------------'''
+            HeaderLabel = [ "任務"] + [str(num) for num in range(1, N_COL_WRKRTBL_JOB_GRP + 1) ]
+            self.cmptWorkerTbl.setColumnCount( len( HeaderLabel ) )
+            self.cmptWorkerTbl.setHorizontalHeaderLabels(HeaderLabel)
+            self.cmptWorkerTbl.verticalHeader().setVisible(False)
 
-        ''' ---------------------------------------------
-        Get all job name in competition json file
-        ----------------------------------------------'''
-        if self.curr_cmpt.cmpt_hndl != "":
-            jobname_ls, joblabel_ls = self.cmpt_job_lists_get()
+            ''' ---------------------------------------------
+            Get all job name to worker list in dict type
+            ----------------------------------------------'''
+            jb_wrk_ls = self.frbc.get_jb_to_name_list()
 
-        ''' ---------------------------------------------
-        Get worker whose job is the selected job in loop
-        ----------------------------------------------'''
-        tblRow = -1
-        for i in range(0,len(jobname_ls)):
-            jobname = jobname_ls[i]
-            cmpt_wrkr_data = self.curr_cmpt.get_wrk_lst_in_job( joblabel_ls[i] )
-
-            if cmpt_wrkr_data != None:
+            ''' ---------------------------------------------
+            Get worker whose job is the selected job in loop
+            ----------------------------------------------'''
+            tblRow = -1
+            for jobname, worker_ls in jb_wrk_ls.items():
                 tblRow = tblRow + 1
                 self.cmptWorkerTbl.insertRow( tblRow )
                 self.cmptWorkerTbl.setItem( tblRow, 0, QtWidgets.QTableWidgetItem( str(jobname) ) )
                 tblCol = 1
-                print(cmpt_wrkr_data[:])
-                for (wrkrname, ) in cmpt_wrkr_data:
-                    self.cmptWorkerTbl.setItem( tblRow, tblCol, QtWidgets.QTableWidgetItem( str(wrkrname) ) )
+                print(worker_ls[:])
+                for worker in worker_ls:
+                    self.cmptWorkerTbl.setItem( tblRow, tblCol, QtWidgets.QTableWidgetItem( worker ) )
                     tblCol = tblCol + 1
                     if tblCol % N_COL_WRKRTBL_JOB_GRP == 1:
                         tblCol = 1
                         tblRow = tblRow + 1
                         self.cmptWorkerTbl.insertRow( tblRow )
+        else:
+            print("competition must be selected first.")
 
     def gui_remove_worker_data_table( self ):
         rows = self.cmptWorkerTbl.rowCount()
         for row in range( 0, rows ):
             self.cmptWorkerTbl.removeRow( 0 )
 
-    def cmpt_job_lists_get( self ):
-        with open( self.curr_cmpt.json_fname(), "r+", encoding='utf-8' ) as cmpt_info:
-            cmpt_data = json.load( cmpt_info )
-            joblist = cmpt_data['job']
-            cmpt_data['job'] = joblist
-            jobname_ls = [name for name, label in joblist]
-            joblabel_ls = [label for name, label in joblist]
-            return jobname_ls, joblabel_ls
-
     def btn_cmpt_tbl_save_to_excel_clicked( self ):
         sheet_title = str( self.cmbo_wrktbl_mode.currentText() )
-        filepath = cmpt.CMPT_RSC_BASE_PATH + self.curr_cmpt.cmpt_hndl + "/" + sheet_title + ".xlsx"
+        filepath = self.frbc.curr_cmpt_hndl+ "_" + sheet_title + ".xlsx"
         myetu.ETU_cmpt_tbl_save_to_excel( self.cmptWorkerTbl, sheet_title, filepath )
 
 '''-----------------------------------------------------------

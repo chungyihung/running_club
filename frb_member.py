@@ -3,12 +3,9 @@
 
 import pyrebase as pybs
 import json
-import collections as clt
 import openpyxl as pyxl
 import enum as enm
 import datetime
-
-import frb_config as frbcfg     # This should be added manually
 
 ''' ---------------------------------------------
 Member Key
@@ -66,7 +63,13 @@ EXSL_BIRTH_DELIM        = '.'
 
 class frb_member:
     def __init__( self ):
-        self.firebase = pybs.initialize_app(frbcfg.config)
+        ''' ---------------------------------------------
+        Load firebase config file
+        ----------------------------------------------'''
+        with open("firebase_config.json", "r", encoding='utf-8' ) as frb_config_fd:
+            frb_cfg = json.load( frb_config_fd )
+
+        self.firebase = pybs.initialize_app(frb_cfg)
         self.db = self.firebase.database()
         self.stg = self.firebase.storage()
 

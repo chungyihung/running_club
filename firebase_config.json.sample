@@ -1,0 +1,7 @@
+{
+    "apiKey": "[API_KEY_CAN_BE_FOUND_FROM_FIREBASE_CONSOLE]",
+    "authDomain": "[PROJECT_ID].firebaseapp.com",
+    "databaseURL": "https://[PROJECT_ID].firebaseio.com",
+    "storageBucket": "[PROJECT_ID].appspot.com",
+    "serviceAccount": "[ADMIN_KEY_FILE_CAN_BE_DOWNLOAD_FROM_FIREBASE_CONSOLE.json]"
+}

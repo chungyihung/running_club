@@ -39,6 +39,6 @@ def etu_save_to_excel( targetTbl, sheet_title, header, filepath ):
         ws.append( append_list )
 
     wb.save( filename = filepath )
-    ui_utl.popup_msg_box("匯出Excel", "已成功匯出至{}".format(filepath), ui_utl.PU_MSG_TYPE.INFO )
+    ui_utl.popup_msg_box("匯出Excel", "已成功匯出至{}".format(filepath), ui_utl.PU_MSG_INFO )
 
     return True
