@@ -6,6 +6,7 @@ import json
 import openpyxl as pyxl
 import enum as enm
 import datetime
+import frb_util as frbu
 
 ''' ---------------------------------------------
 Member Key
@@ -62,16 +63,14 @@ class ExcelItem( enm.IntEnum ):
 EXSL_BIRTH_DELIM        = '.'
 
 class frb_member:
-    def __init__( self ):
-        ''' ---------------------------------------------
-        Load firebase config file
-        ----------------------------------------------'''
-        with open("firebase_config.json", "r", encoding='utf-8' ) as frb_config_fd:
-            frb_cfg = json.load( frb_config_fd )
+    def __init__( self, instance=None ):
+        if instance == None:
+            self.frbu = frbu.frb_util()
+            self.db, self.stg = self.frbu.get_db_instance()
+        else:
+            self.db, self.stg = instance.get_db_instance()
 
-        self.firebase = pybs.initialize_app(frb_cfg)
-        self.db = self.firebase.database()
-        self.stg = self.firebase.storage()
+        print("Firebase DB addr = {}, STG addr = {}".format(self.db,self.stg))
 
     ''' ---------------------------------------------
     Get member data in dict type

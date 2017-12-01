@@ -1,11 +1,11 @@
 #!/usr/local/bin/python3
 # -*- coding:utf-8 -*-
 import frb_member as frb
-import competition as cmpt
 import frb_competition as frb_cmpt
 import etu as myetu
 import ui_util as ui_utl
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
+import frb_util as frbu
 
 '''-----------------------------------------------------------
 Setting main window layout and class
@@ -48,8 +48,10 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
         UI_MainWindow.__init__( self )
         self.setupUi( self )
 
-        self.frb = frb.frb_member()
-        self.frbc = frb_cmpt.frb_competition()
+        self.frbu = frbu.frb_util()
+
+        self.frb = frb.frb_member( self.frbu )
+        self.frbc = frb_cmpt.frb_competition( self.frbu )
 
         self.gui_mbr_info_update_photo()
 
@@ -280,7 +282,7 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
     def gui_cmbo_wrktbl_mode_init( self, items ):
         self.cmbo_wrktbl_mode.clear()
         self.cmbo_wrktbl_mode.addItems( items )
-        self.cmbo_wrktbl_mode.setCurrentIndex( frb_cmpt.WRKTBL_MODE.NORMAL  )
+        self.cmbo_wrktbl_mode.setCurrentIndex( frb_cmpt.WRKTBL_MODE.NORMAL )
 
     def gui_cmbo_selc_competition_init( self ):
         ''' ---------------------------------------------
@@ -633,10 +635,10 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
     These procedures will be integrated with member table later.
     ----------------------------------------------'''
     def gui_fill_worker_data_table( self ):
-        if cmpt.WRKTBL_MODE.NORMAL == self.cmbo_wrktbl_mode.currentIndex():
+        if frb_cmpt.WRKTBL_MODE.NORMAL == self.cmbo_wrktbl_mode.currentIndex():
             self.gui_remove_worker_data_table()
             self.gui_update_worker_data_table()
-        elif cmpt.WRKTBL_MODE.JOBGROUP == self.cmbo_wrktbl_mode.currentIndex():
+        elif frb_cmpt.WRKTBL_MODE.JOBGROUP == self.cmbo_wrktbl_mode.currentIndex():
             print("List worker table in job group")
             self.gui_remove_worker_data_table()
             self.gui_update_wrktbl_job_grp_mode()

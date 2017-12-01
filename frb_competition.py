@@ -3,6 +3,7 @@
 import enum as enm
 import pyrebase as pybs
 import json
+import frb_util as frbu
 
 ''' ---------------------------------------------
 Constant
@@ -68,17 +69,14 @@ INVALID_JOB_INDEX = 0
 Class Implementation
 ----------------------------------------------'''
 class frb_competition:
-    def __init__( self ):
-        ''' ---------------------------------------------
-        Load firebase config file
-        ----------------------------------------------'''
-        with open("firebase_config.json", "r", encoding='utf-8' ) as frb_config_fd:
-            frb_cfg = json.load( frb_config_fd )
+    def __init__( self, instance=None ):
+        if instance == None:
+            self.frbu = frbu.frb_util()
+            self.db, self.stg = self.frbu.get_db_instance()
+        else:
+            self.db, self.stg = instance.get_db_instance()
 
-        self.firebase = pybs.initialize_app(frb_cfg)
-        self.db = self.firebase.database()
-        self.stg = self.firebase.storage()
-
+        print("Firebase DB addr = {}, STG addr = {}".format(self.db,self.stg))
         ''' ---------------------------------------------
         Indicate current selecred competition
         ----------------------------------------------'''
