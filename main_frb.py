@@ -6,6 +6,7 @@ import etu as myetu
 import ui_util as ui_utl
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 import frb_util as frbu
+from pathlib import Path
 
 '''-----------------------------------------------------------
 Setting main window layout and class
@@ -48,6 +49,12 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
         UI_MainWindow.__init__( self )
         self.setupUi( self )
 
+        ''' ---------------------------------------------
+        Init firebase utility and its corresponding
+        member/compeition instances. Then, in the future,
+        member and competition object could use the member
+        function of frb_member/frb_cmpt.
+        ----------------------------------------------'''
         self.frbu = frbu.frb_util()
 
         self.frb = frb.frb_member( self.frbu )
@@ -174,7 +181,7 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
             memdata = self.frb.get_member( query_id )
             if memdata != None:
                 self.gui_fill_widget_with_curr_mbr(memdata)
-                self.gui_mbr_info_update_photo(memdata[frb.Photo])
+                self.gui_mbr_info_update_photo(memdata)
             else:
                 print("{} member not found".format(query_id))
         except ValueError as err:
@@ -228,21 +235,48 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
 
         return init_member
 
-    def gui_mbr_info_update_photo( self, impath = frb.DEFAULT_PHOTO ):
-        self.gui_qpixmap = QtGui.QPixmap( impath )
-        if self.gui_qpixmap.isNull():
+    ''' ---------------------------------------------
+    Update photo procedure on UI (QPixmap)
+    ----------------------------------------------'''
+    def gui_mbr_info_update_photo( self, member=None ):
+        if member == None:
             self.gui_qpixmap = QtGui.QPixmap( frb.DEFAULT_PHOTO )
-            print( "Photo Path is invalid, showing with default photo" )
+            print( "Use default photo for member is None" )
+        else:
+            import os
+            ''' ---------------------------------------------
+            Check if member photo exists under local folder,
+            if not, download from firebase.
+            ----------------------------------------------'''
+            impath=frb.PHOTO_FOLDER_LOCAL + "/" + str(member[frb.MemberID]) + ".png"
+            print( "photo = {}".format(impath) )
+
+            if not os.path.isfile(impath):
+                self.frb.download_mem_photo(member[frb.MemberID])
+
+            self.gui_qpixmap = QtGui.QPixmap( impath )
+            if self.gui_qpixmap.isNull():
+                self.gui_qpixmap = QtGui.QPixmap( frb.DEFAULT_PHOTO )
+                print( "Photo Path is invalid, showing with default photo" )
 
         lblsize = self.lbl_mbr_photo.size()
         self.lbl_mbr_photo.setPixmap( self.gui_qpixmap.scaled( lblsize, QtCore.Qt.KeepAspectRatio ) )
 
+    ''' ---------------------------------------------
+    Select member photo and upload to firebase
+    ----------------------------------------------'''
     def gui_get_mbr_file_path( self ):
         fname = QtWidgets.QFileDialog.getOpenFileName( self, '選擇一張照片', "./Resource", "Image Files (*.png *.jpg *.bmp)" )
         if fname[0]:
-            import os
-            self.edit_mbr_photo_path.setText( os.path.relpath( fname[0] ) )
+            print("filename is {}".format(fname))
+            retval = ui_utl.popup_msg_box("更新照片", "確定要更新照片嗎?", ui_utl.PU_MSG_YESNO )
+            if retval == QtWidgets.QMessageBox.Yes:
+                target_id = int(self.edit_mbr_id.text())
+                self.frb.upload_mem_photo( fname[0],target_id )
 
+    ''' ---------------------------------------------
+    Update
+    ----------------------------------------------'''
     def gui_save_curr_mbr_to_db( self ):
         member =  self.gui_fill_curr_mbr()
         self.frb.set_member( member, member[frb.MemberID])
@@ -411,6 +445,10 @@ class MainApp( QtWidgets.QMainWindow, UI_MainWindow ):
             try:
                 self.frbc.set_competition( cmpt_data )
                 ui_utl.popup_msg_box("賽事建立", "{} 完成建立!".format(new_cmpt), ui_utl.PU_MSG_INFO )
+
+                ''' ---------------------------------------------
+                TODO - Check the following flow and make a comment
+                ----------------------------------------------'''
                 self.gui_cmbo_selc_competition_init()
             except:
                 print("Failed to create competition")

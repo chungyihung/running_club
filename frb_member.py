@@ -30,11 +30,22 @@ Coat_SZ     = "coat_sz"
 ''' ---------------------------------------------
 Default Member attributes
 ----------------------------------------------'''
-DEFAULT_PHOTO = "Resource/none_photo.jpg"
+RESOURCE = "Resource"
+DEFAULT_PHOTO = RESOURCE + "/none_photo.jpg"
 DEFAULT_TSHIRT_SZ = 0
 DEFAULT_COAT_SZ = 0
 
 INVALID_ID = 65535
+
+''' ---------------------------------------------
+Firebase storage setting
+- member photo:
+    Firebase storage: PHOTO_FOLDER
+    Member photo filename is in format [member ID].png
+      e.g. PHOTO_FOLDER/1.png
+----------------------------------------------'''
+PHOTO_FOLDER = "member_photo"
+PHOTO_FOLDER_LOCAL = RESOURCE + "/member_photo"
 
 ''' ---------------------------------------------
 Excel file related
@@ -132,6 +143,17 @@ class frb_member:
     def compare_timestamp( self, local_t ):
         server_t = self.get_timestamp()
         return local_t - server_t
+
+    ''' ---------------------------------------------
+    Member photo related functions
+    ----------------------------------------------'''
+    def upload_mem_photo( self, filepath, memid ):
+        ret = self.stg.child("{}/{}.png".format(PHOTO_FOLDER,memid)).put(filepath)
+        return ret
+
+    def download_mem_photo( self, memid ):
+        ret = self.stg.child("{}/{}.png".format(PHOTO_FOLDER,memid)).download("{}/{}.png".format(PHOTO_FOLDER_LOCAL, memid))
+        return ret
 
     def init_member( self, memid = INVALID_ID ):
         init_member = {}
