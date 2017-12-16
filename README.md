@@ -1,12 +1,14 @@
 ## Running Club Member System
-
 Draft version
+<img src="Readme_rsc/preview.png" alt="Readme_rsc/preview.png">
 
-### Environment
+### Environment & Depent Modules
 * Python 3.6.1
 * PyQt5 (V5.8.1)
+* Pyrebase
+* Openpyxl
 
-### Installation
+### Installation (Constructing...)
 
 ### Windows
 1. Python 3.6.1 - Download release binary from website:
@@ -36,9 +38,15 @@ Draft version
         PyQt Version:  5.8.1
    ```
 
-###TODO
-1. Redesign the data type of each items in database. In this draft version I just implemented a toy without mature design.
+### Start
+1. Create a project on Firebase.
+2. Fillup firebase config file which could refer to firebase_config.json.sample. Place the corresponding key under the project root folder.
+3. Start from command line:
+   $ python3 main_frb.py
+
+### TODO
+1. Redesign a better way to handle data without querying from firebase every operation.
 2. Learn how to manipulate QtTableWidget to implement more user friendly interface.
 3. Think/discuss a way with user to implement functions/pages for each running activity.
-
+4. Think how to build standalone executive file of windows for compatibility. (cx_Freeze/pyinstaller...but both of them have bugs and can't build successfully.)
 
